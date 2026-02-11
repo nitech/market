@@ -10,6 +10,17 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
   const [company, setCompany] = useState<Enhet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(orgnr);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -111,7 +122,15 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
             <dl className="space-y-2">
               <div>
                 <dt className="font-medium text-gray-600">Organisasjonsnummer:</dt>
-                <dd className="text-gray-800">{company.organisasjonsnummer}</dd>
+                <dd className="text-gray-800">
+                  <button
+                    onClick={copyToClipboard}
+                    className="hover:text-blue-600 cursor-pointer transition-colors"
+                    title={copied ? 'Kopiert!' : 'Klikk for å kopiere'}
+                  >
+                    {copied ? '✓ Kopiert' : company.organisasjonsnummer}
+                  </button>
+                </dd>
               </div>
               {company.organisasjonsform && (
                 <div>

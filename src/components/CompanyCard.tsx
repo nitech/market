@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CompanyWithRoles } from '../types';
 
 interface CompanyCardProps {
@@ -8,6 +9,17 @@ interface CompanyCardProps {
 }
 
 export function CompanyCard({ company, onViewDetails, isFavorite, onToggleFavorite }: CompanyCardProps) {
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(company.organisasjonsnummer);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
   const formatCurrency = (amount?: number) => {
     if (!amount) return 'Ikke oppgitt';
     return new Intl.NumberFormat('no-NO', {
@@ -81,9 +93,13 @@ export function CompanyCard({ company, onViewDetails, isFavorite, onToggleFavori
               </button>
             )}
           </div>
-          <p className="text-sm text-gray-600 mb-1">
-            Org.nr: {company.organisasjonsnummer}
-          </p>
+          <button
+            onClick={copyToClipboard}
+            className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer transition-colors text-left"
+            title={copied ? 'Kopiert!' : 'Klikk for å kopiere'}
+          >
+            Org.nr: {copied ? '✓ Kopiert' : company.organisasjonsnummer}
+          </button>
         </div>
         {onViewDetails && (
           <button

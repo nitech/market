@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useMemo, useRef, useEffect } from 'react';
 import type { SearchFilters } from '../types';
 
 interface SearchFiltersProps {
@@ -15,6 +15,97 @@ const ORGANISASJONSFORMER = [
   { value: 'STI', label: 'Stiftelse (STI)' },
   { value: 'FKF', label: 'Fylkeskommunalt foretak (FKF)' },
   { value: 'KSA', label: 'Kommunalt selskap (KSA)' },
+];
+
+// Alle rotnivå næringskoder (level 2) fra KLASS
+const ALLE_NAERINGSKODER = [
+  { code: '01', name: 'Jordbruk og tjenester tilknyttet jordbruk, jakt og viltstell' },
+  { code: '02', name: 'Skogbruk og tjenester tilknyttet skogbruk' },
+  { code: '03', name: 'Fiske, fangst og akvakultur' },
+  { code: '05', name: 'Bryting av steinkull og brunkull' },
+  { code: '06', name: 'Utvinning av råolje og naturgass' },
+  { code: '07', name: 'Bryting av metallholdig malm' },
+  { code: '08', name: 'Bryting og bergverksdrift ellers' },
+  { code: '09', name: 'Tjenester tilknyttet bergverksdrift og utvinning' },
+  { code: '10', name: 'Produksjon av nærings- og nytelsesmidler' },
+  { code: '11', name: 'Produksjon av drikkevarer' },
+  { code: '12', name: 'Produksjon av tobakksvarer' },
+  { code: '13', name: 'Produksjon av tekstiler' },
+  { code: '14', name: 'Produksjon av klær' },
+  { code: '15', name: 'Produksjon av lær og andre relaterte produkter' },
+  { code: '16', name: 'Produksjon av trelast og varer av tre, kork, strå og flettematerialer, unntatt møbler' },
+  { code: '17', name: 'Produksjon av papir og papirvarer' },
+  { code: '18', name: 'Trykking og reproduksjon av innspilte opptak' },
+  { code: '19', name: 'Produksjon av kullprodukter og raffinerte petroleumsprodukter' },
+  { code: '20', name: 'Produksjon av kjemikalier og kjemiske produkter' },
+  { code: '21', name: 'Produksjon av farmasøytiske råvarer og preparater' },
+  { code: '22', name: 'Produksjon av gummi- og plastprodukter' },
+  { code: '23', name: 'Produksjon av andre ikke-metalliske mineralprodukter' },
+  { code: '24', name: 'Produksjon av metaller' },
+  { code: '25', name: 'Produksjon av metallvarer, unntatt maskiner og utstyr' },
+  { code: '26', name: 'Produksjon av datamaskiner og elektroniske og optiske produkter' },
+  { code: '27', name: 'Produksjon av elektrisk utstyr' },
+  { code: '28', name: 'Produksjon av maskiner og utstyr ikke nevnt annet sted' },
+  { code: '29', name: 'Produksjon av motorvogner og tilhengere' },
+  { code: '30', name: 'Produksjon av andre transportmidler' },
+  { code: '31', name: 'Produksjon av møbler' },
+  { code: '32', name: 'Annen industriproduksjon' },
+  { code: '33', name: 'Reparasjon, vedlikehold og installasjon av maskiner og utstyr' },
+  { code: '35', name: 'Forsyning av elektrisitet, gass, damp og kjøleluft' },
+  { code: '36', name: 'Uttak fra kilde, rensing og distribusjon av vann' },
+  { code: '37', name: 'Oppsamling og behandling av avløpsvann' },
+  { code: '38', name: 'Innsamling, gjenvinning og behandling av avfall' },
+  { code: '39', name: 'Miljøutbedring, opprydding og lignende aktivitet' },
+  { code: '41', name: 'Oppføring av bygninger' },
+  { code: '42', name: 'Anleggsvirksomhet' },
+  { code: '43', name: 'Spesialisert bygge- og anleggsvirksomhet' },
+  { code: '46', name: 'Engroshandel' },
+  { code: '47', name: 'Detaljhandel' },
+  { code: '49', name: 'Landtransport og rørtransport' },
+  { code: '50', name: 'Sjøfart' },
+  { code: '51', name: 'Lufttransport' },
+  { code: '52', name: 'Lagring og andre tjenester tilknyttet transport' },
+  { code: '53', name: 'Post- og budtjenester' },
+  { code: '55', name: 'Overnattingsvirksomhet' },
+  { code: '56', name: 'Serveringsvirksomhet' },
+  { code: '58', name: 'Utgivelsesvirksomhet' },
+  { code: '59', name: 'Film-, video- og fjernsynsprogramproduksjon, utgivelse av musikk- og lydopptak' },
+  { code: '60', name: 'Radio- og fjernsynsprogramvirksomhet, kringkasting, nyhetsbyråer og distribuering av annet innhold' },
+  { code: '61', name: 'Telekommunikasjon' },
+  { code: '62', name: 'Dataprogrammering, konsulentvirksomhet og andre tjenester tilknyttet informasjonsteknologi' },
+  { code: '63', name: 'Datainfrastruktur, -behandling, -lagring og andre informasjonstjenester' },
+  { code: '64', name: 'Finansieringsvirksomhet og kollektive investeringsfond' },
+  { code: '65', name: 'Forsikringsvirksomhet, unntatt trygdeordninger underlagt offentlig forvaltning' },
+  { code: '66', name: 'Tjenester tilknyttet finansiell virksomhet' },
+  { code: '68', name: 'Eiendomsvirksomhet' },
+  { code: '69', name: 'Juridisk og regnskapsmessig tjenesteyting' },
+  { code: '70', name: 'Hovedkontortjenester og administrativ rådgivning' },
+  { code: '71', name: 'Arkitektvirksomhet og teknisk konsulentvirksomhet, og teknisk prøving og analyse' },
+  { code: '72', name: 'Forskning og eksperimentell utvikling' },
+  { code: '73', name: 'Annonse- og reklamevirksomhet, markedsundersøkelser og PR og kommunikasjonstjenester' },
+  { code: '74', name: 'Annen faglig, vitenskapelig og teknisk virksomhet' },
+  { code: '75', name: 'Veterinærtjenester' },
+  { code: '77', name: 'Utleie- og leasingvirksomhet' },
+  { code: '78', name: 'Arbeidskrafttjenester' },
+  { code: '79', name: 'Reisebyrå- og reisearrangørvirksomhet og tilknyttede tjenester' },
+  { code: '80', name: 'Etterforsknings- og vakttjenester' },
+  { code: '81', name: 'Tjenester tilknyttet eiendomsdrift og beplantning av hager og parkanlegg' },
+  { code: '82', name: 'Annen forretningsmessig tjenesteyting' },
+  { code: '84', name: 'Offentlig administrasjon og forsvar, og trygdeordninger underlagt offentlig forvaltning' },
+  { code: '85', name: 'Undervisning' },
+  { code: '86', name: 'Helsetjenester' },
+  { code: '87', name: 'Helse- og omsorgstjenester i institusjoner og andre botilbud' },
+  { code: '88', name: 'Omsorgs- og sosialtjenester uten botilbud' },
+  { code: '90', name: 'Kunstnerisk virksomhet og underholdningsvirksomhet' },
+  { code: '91', name: 'Drift av biblioteker, arkiver, museer og annen kulturvirksomhet' },
+  { code: '92', name: 'Lotteri- og gamblingvirksomhet' },
+  { code: '93', name: 'Sports-, fornøyelses- og fritidsaktiviteter' },
+  { code: '94', name: 'Aktiviteter i medlemsorganisasjoner' },
+  { code: '95', name: 'Reparasjon og vedlikehold av datamaskiner, husholdningsvarer, varer til personlig bruk og motorvogner og motorsykler' },
+  { code: '96', name: 'Personlig tjenesteyting' },
+  { code: '97', name: 'Lønnet arbeid i private husholdninger' },
+  { code: '98', name: 'Annen vareproduksjon og tjenesteyting i private husholdninger til eget bruk' },
+  { code: '99', name: 'Aktiviteter i internasjonale organisasjoner og organer' },
 ];
 
 export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps) {
@@ -53,49 +144,82 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
   const [tilDato, setTilDato] = useState(isoToNorwegian(defaultDates.til));
   const [organisasjonsform, setOrganisasjonsform] = useState<string[]>(['AS']);
   const [navn, setNavn] = useState('');
-  
-  // Alle tilgjengelige næringskoder
-  const alleNaeringskoder = [
-    { code: '47', label: '47.xx – Butikkhandel' },
-    { code: '56', label: '56.xx – Servering' },
-    { code: '96', label: '96.xx – Personlige tjenester' },
-    { code: '43', label: '43.xx – Håndverk/bygg' },
-    { code: '62', label: '62.xx – IT/konsulent' },
-    { code: '64', label: '64.xx – Finans/holding' },
-    { code: '70.10', label: '70.10 – Hovedkontor' },
-    { code: '68.20', label: '68.20 – Eiendom/utleie' },
-    { code: '46', label: '46.xx – Engros uten ansatte' },
-  ];
+  const [naeringskodeSearch, setNaeringskodeSearch] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Standardverdier for næringskoder
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Standardverdier for næringskoder (inkluder)
   const [inkluderNaeringskoder, setInkluderNaeringskoder] = useState<string[]>([
     '47', '56', '96', '43', '62'
   ]);
-  const [ekskluderNaeringskoder, setEkskluderNaeringskoder] = useState<string[]>([
-    '64', '70.10', '68.20', '46'
-  ]);
 
-  // Finn næringskoder som ikke er i noen av listene
-  const tilgjengeligeNaeringskoder = alleNaeringskoder.filter(
-    nk => !inkluderNaeringskoder.includes(nk.code) && !ekskluderNaeringskoder.includes(nk.code)
-  );
-
-  const moveToInkluder = (code: string) => {
-    setEkskluderNaeringskoder(prev => prev.filter(c => c !== code));
-    setInkluderNaeringskoder(prev => [...prev, code]);
-  };
-
-  const moveToEkskluder = (code: string) => {
-    setInkluderNaeringskoder(prev => prev.filter(c => c !== code));
-    setEkskluderNaeringskoder(prev => [...prev, code]);
-  };
-
-  const moveToAvailable = (code: string, fromList: 'inkluder' | 'ekskluder') => {
-    if (fromList === 'inkluder') {
-      setInkluderNaeringskoder(prev => prev.filter(c => c !== code));
-    } else {
-      setEkskluderNaeringskoder(prev => prev.filter(c => c !== code));
+  // Filtrerte næringskoder basert på søk (ekskluderer allerede valgte)
+  const filteredNaeringskoder = useMemo(() => {
+    if (!naeringskodeSearch.trim()) {
+      return [];
     }
+    const searchLower = naeringskodeSearch.toLowerCase();
+    return ALLE_NAERINGSKODER.filter(
+      nk => 
+        !inkluderNaeringskoder.includes(nk.code) &&
+        (nk.code.toLowerCase().includes(searchLower) ||
+        nk.name.toLowerCase().includes(searchLower))
+    );
+  }, [naeringskodeSearch, inkluderNaeringskoder]);
+
+  const handleAddNaeringskode = (code: string) => {
+    if (!inkluderNaeringskoder.includes(code)) {
+      setInkluderNaeringskoder(prev => [...prev, code]);
+      setNaeringskodeSearch('');
+      setShowSearchResults(false);
+      setSelectedIndex(-1);
+    }
+  };
+
+  const handleRemoveNaeringskode = (code: string) => {
+    setInkluderNaeringskoder(prev => prev.filter(c => c !== code));
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && naeringskodeSearch === '' && inkluderNaeringskoder.length > 0) {
+      // Remove last pill on backspace when search is empty
+      setInkluderNaeringskoder(prev => prev.slice(0, -1));
+    } else if (e.key === 'ArrowDown' && showSearchResults && filteredNaeringskoder.length > 0) {
+      e.preventDefault();
+      setSelectedIndex(prev => 
+        prev < filteredNaeringskoder.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp' && showSearchResults) {
+      e.preventDefault();
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+    } else if (e.key === 'Enter' && showSearchResults && selectedIndex >= 0 && selectedIndex < filteredNaeringskoder.length) {
+      e.preventDefault();
+      handleAddNaeringskode(filteredNaeringskoder[selectedIndex].code);
+      setSelectedIndex(-1);
+    } else if (e.key === 'Escape') {
+      setShowSearchResults(false);
+      setSelectedIndex(-1);
+    }
+  };
+
+  const getNaeringskodeLabel = (code: string) => {
+    const nk = ALLE_NAERINGSKODER.find(n => n.code === code);
+    return nk ? `${nk.code} – ${nk.name}` : code;
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -113,7 +237,7 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
       navn: navn || undefined,
       // Always send næringskoder arrays, even if empty (backend will handle it)
       inkluderNaeringskoder: inkluderNaeringskoder.length > 0 ? inkluderNaeringskoder : [],
-      ekskluderNaeringskoder: ekskluderNaeringskoder.length > 0 ? ekskluderNaeringskoder : [],
+      ekskluderNaeringskoder: [], // No longer used, but kept for API compatibility
       page: 0,
       size: 100,
     });
@@ -215,117 +339,72 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">Næringskode-filtre</h3>
           <p className="text-sm text-gray-600 mb-4">
-            Flytt næringskoder mellom listene ved å bruke pil-knappene. Næringskoder i "Inkluder" vil bli prioritert, 
-            mens næringskoder i "Ekskluder" vil bli filtrert bort.
+            Søk og legg til næringskoder. Bruk backspace for å fjerne siste valg.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Inkluder liste */}
-            <div className="border border-green-300 rounded-lg p-4 bg-green-50">
-              <h4 className="font-semibold text-green-800 mb-2">Inkluder (Prioriter)</h4>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {inkluderNaeringskoder.map((code) => {
-                  const nk = alleNaeringskoder.find(n => n.code === code);
-                  return (
-                    <div key={code} className="flex items-center justify-between bg-white p-2 rounded border border-green-200">
-                      <span className="text-sm text-gray-700 flex-1">{nk?.label || code}</span>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => moveToEkskluder(code)}
-                          className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                          title="Flytt til Ekskluder"
-                        >
-                          →
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveToAvailable(code, 'inkluder')}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                          title="Fjern fra liste"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {inkluderNaeringskoder.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">Ingen næringskoder valgt</p>
-                )}
-              </div>
+          <div className="relative" ref={searchContainerRef}>
+            <label htmlFor="naeringskodeSearch" className="block text-sm font-medium text-gray-700 mb-2">
+              Søk og legg til næringskoder
+            </label>
+            <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 min-h-[42px]">
+              {inkluderNaeringskoder.map((code) => (
+                <span
+                  key={code}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm"
+                >
+                  <span>{getNaeringskodeLabel(code)}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNaeringskode(code)}
+                    className="hover:text-blue-900 focus:outline-none"
+                    title="Fjern"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                id="naeringskodeSearch"
+                value={naeringskodeSearch}
+                onChange={(e) => {
+                  setNaeringskodeSearch(e.target.value);
+                  setShowSearchResults(e.target.value.trim().length > 0);
+                  setSelectedIndex(-1); // Reset selection when typing
+                }}
+                onKeyDown={handleSearchKeyDown}
+                onFocus={() => {
+                  if (naeringskodeSearch.trim().length > 0) {
+                    setShowSearchResults(true);
+                  }
+                }}
+                className="flex-1 min-w-[120px] outline-none bg-transparent text-sm"
+                placeholder="Søk på kode eller navn..."
+              />
             </div>
 
-            {/* Tilgjengelige næringskoder */}
-            <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-              <h4 className="font-semibold text-gray-800 mb-2">Tilgjengelige</h4>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {tilgjengeligeNaeringskoder.map((nk) => (
-                  <div key={nk.code} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
-                    <span className="text-sm text-gray-700 flex-1">{nk.label}</span>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => moveToInkluder(nk.code)}
-                        className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
-                        title="Flytt til Inkluder"
-                      >
-                        ←
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveToEkskluder(nk.code)}
-                        className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                        title="Flytt til Ekskluder"
-                      >
-                        →
-                      </button>
-                    </div>
-                  </div>
+            {/* Search results dropdown */}
+            {showSearchResults && filteredNaeringskoder.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                {filteredNaeringskoder.map((nk, index) => (
+                  <button
+                    key={nk.code}
+                    type="button"
+                    onClick={() => handleAddNaeringskode(nk.code)}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    className={`w-full text-left px-4 py-2 focus:outline-none ${
+                      index === selectedIndex
+                        ? 'bg-blue-50 border-l-2 border-blue-500'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-sm font-semibold text-gray-900">{nk.code}</span>
+                    <span className="text-sm text-gray-600 ml-2">– {nk.name}</span>
+                  </button>
                 ))}
-                {tilgjengeligeNaeringskoder.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">Alle næringskoder er valgt</p>
-                )}
               </div>
-            </div>
-
-            {/* Ekskluder liste */}
-            <div className="border border-red-300 rounded-lg p-4 bg-red-50">
-              <h4 className="font-semibold text-red-800 mb-2">Ekskluder</h4>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {ekskluderNaeringskoder.map((code) => {
-                  const nk = alleNaeringskoder.find(n => n.code === code);
-                  return (
-                    <div key={code} className="flex items-center justify-between bg-white p-2 rounded border border-red-200">
-                      <span className="text-sm text-gray-700 flex-1">{nk?.label || code}</span>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => moveToInkluder(code)}
-                          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
-                          title="Flytt til Inkluder"
-                        >
-                          ←
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveToAvailable(code, 'ekskluder')}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                          title="Fjern fra liste"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {ekskluderNaeringskoder.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">Ingen næringskoder valgt</p>
-                )}
-              </div>
-            </div>
+            )}
           </div>
-
         </div>
 
         <button

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CompanyWithRoles } from '../types';
 
 interface CompanyListProps {
@@ -9,6 +10,17 @@ interface CompanyListProps {
 }
 
 export function CompanyList({ companies, loading, onViewDetails, favorites, onToggleFavorite }: CompanyListProps) {
+  const [copiedOrgnr, setCopiedOrgnr] = useState<string | null>(null);
+
+  const copyToClipboard = async (orgnr: string) => {
+    try {
+      await navigator.clipboard.writeText(orgnr);
+      setCopiedOrgnr(orgnr);
+      setTimeout(() => setCopiedOrgnr(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
   const formatCurrency = (amount?: number) => {
     if (!amount) return 'Ikke oppgitt';
     return new Intl.NumberFormat('no-NO', {
@@ -134,7 +146,13 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                   <div className="text-sm font-medium text-gray-900">{company.navn || 'Navn ikke oppgitt'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{company.organisasjonsnummer}</div>
+                  <button
+                    onClick={() => copyToClipboard(company.organisasjonsnummer)}
+                    className="text-sm text-gray-500 hover:text-blue-600 cursor-pointer transition-colors"
+                    title={copiedOrgnr === company.organisasjonsnummer ? 'Kopiert!' : 'Klikk for å kopiere'}
+                  >
+                    {copiedOrgnr === company.organisasjonsnummer ? '✓ Kopiert' : company.organisasjonsnummer}
+                  </button>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-gray-500 max-w-xs truncate" title={getAddressString(company)}>
