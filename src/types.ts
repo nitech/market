@@ -1,7 +1,7 @@
 // Frontend types (re-export from server types for consistency)
-export type {
+import type {
   Enhet,
-  CompanyWithRoles,
+  CompanyWithRoles as ServerCompanyWithRoles,
   SearchFilters,
   Address,
   Capital,
@@ -9,6 +9,18 @@ export type {
   Organisasjonsform,
   Person,
 } from '../server/types';
+
+export type {
+  Enhet,
+  SearchFilters,
+  Address,
+  Capital,
+  Naeringskode,
+  Organisasjonsform,
+  Person,
+};
+
+export type CompanyWithRoles = ServerCompanyWithRoles;
 
 export interface SearchResponse {
   companies: CompanyWithRoles[];
