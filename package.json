@@ -1,0 +1,30 @@
+{
+  "name": "bronnoysund-dashboard",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch --bun server/index.ts",
+    "dev:frontend": "vite",
+    "dev:all": "concurrently \"bun run dev\" \"bun run dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "server": "bun run server/index.ts"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "elysia": "^1.1.0",
+    "@elysiajs/cors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.1",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
+  }
+}

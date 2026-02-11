@@ -1,0 +1,18 @@
+[     601ms] Uncaught Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at co (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:354986)
+    at Sl (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:427708)
+    at vc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:415282)
+    at yc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:415210)
+    at gc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:415073)
+    at ic (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:410238)
+    at k (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:437076)
+    at P (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:437608)
+[     601ms] Uncaught Error: Minified React error #423; visit https://reactjs.org/docs/error-decoder.html?invariant=423 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Sl (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:427394)
+    at vc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:415282)
+    at yc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:415210)
+    at gc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:415073)
+    at oc (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:411908)
+    at ic (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:410464)
+    at k (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:437076)
+    at P (https://cdn.redocly.com/redoc/v2.5.0/bundles/redoc.standalone.js:1:437608)
