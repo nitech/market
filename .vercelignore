@@ -1,0 +1,7 @@
+src/
+server/index.ts
+vite.config.ts
+index.html
+dist/
+*.zip
+
