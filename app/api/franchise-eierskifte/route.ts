@@ -8,7 +8,6 @@ import type {
 } from '@/server/types';
 import * as nodePath from 'node:path';
 import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 
 export const runtime = 'nodejs';
 
@@ -27,10 +26,9 @@ function normalizeText(s?: string | null): string {
 }
 
 async function loadFranchisesFromCsv(): Promise<string[]> {
-  // Resolve relative to this file, not process.cwd(). This is more reliable
-  // in Next/Bun runtime environments.
-  const routeFileDir = nodePath.dirname(fileURLToPath(import.meta.url));
-  const csvPath = nodePath.resolve(routeFileDir, '../../../franchise-utvalgt.csv');
+  // On Vercel, the repo root files are not guaranteed to be present.
+  // We store the CSV under `public/` so Next includes it in the deployment.
+  const csvPath = nodePath.join(process.cwd(), 'public', 'franchise-utvalgt.csv');
 
   let content: string;
   try {
