@@ -10,6 +10,7 @@ import { ExportButton } from '@/app/components/ExportButton';
 import { useCompanies } from '@/app/hooks/useCompanies';
 import { useFavorites } from '@/app/hooks/useFavorites';
 import type { SearchFilters } from '@/server/types';
+import { FranchiseEierskifteTool } from '@/app/components/FranchiseEierskifteTool';
 
 export default function Home() {
   const {
@@ -55,6 +56,8 @@ export default function Home() {
 
       <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <SearchFiltersComponent onSearch={handleSearch} loading={loading} />
+
+        <FranchiseEierskifteTool />
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">

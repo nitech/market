@@ -131,3 +131,57 @@ export interface CompanyWithRoles extends Enhet {
   dagligLeder?: Person | { navn?: string };
 }
 
+// --- Underenheter / franchise-eierskifte ---
+
+export interface Underenhet extends Enhet {
+  // BRREG undenhet
+  datoEierskifte?: string;
+  // Hovedenhet (overordnet) sin orgnr
+  overordnetEnhet?: string;
+  // Underenheter bruker samme adresseformat som Enhet, men BRREG kan returnere feltene
+  // via postadresse/forretningsadresse/beliggenhetsadresse (avhengig av endpoint og versjon)
+  beliggenhetsadresse?: Address;
+  oppstartsdato?: string;
+  nedleggelsesdato?: string;
+}
+
+export interface UnderenheterResponse {
+  _embedded?: {
+    underenheter?: Underenhet[];
+  };
+  _links?: {
+    self?: { href?: string };
+    first?: { href?: string };
+    prev?: { href?: string };
+    next?: { href?: string };
+    last?: { href?: string };
+  };
+  page?: {
+    number?: number;
+    size?: number;
+    totalPages?: number;
+    totalElements?: number;
+  };
+}
+
+export interface FranchiseEierskifteItem {
+  franchiseMatch: string;
+  underenhet: {
+    organisasjonsnummer: string;
+    navn?: string;
+    datoEierskifte?: string;
+    // Kontakt/adressefelt (valgfritt - kan mangle)
+    epostadresse?: string;
+    telefon?: string;
+    mobil?: string;
+    hjemmeside?: string;
+    postadresse?: Address;
+    forretningsadresse?: Address;
+    beliggenhetsadresse?: Address;
+  };
+  hovedenhet: {
+    organisasjonsnummer: string;
+    navn?: string;
+  };
+}
+
