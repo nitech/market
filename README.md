@@ -24,12 +24,12 @@ En dashboard-app for å søke og analysere bedrifter fra Brønnøysundregistrene
 
 1. Installer dependencies:
 ```bash
-npm install
+bun install
 ```
 
 2. Start utviklingsserveren:
 ```bash
-npm run dev
+bun run dev
 ```
 
 Appen kjører på http://localhost:3000
@@ -60,10 +60,10 @@ Next.js API Routes fungerer som en proxy til Brønnøysundregistrene API:
 
 ```bash
 # Bygg lokalt
-npm run build
+bun run build
 
 # Start produksjonsserver
-npm start
+bun start
 ```
 
 ## Notater

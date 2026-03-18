@@ -1,20 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const FAVORITES_KEY = 'bronnoysund_favorites';
 
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    // Avoid setState inside an effect; this initializer runs during client render.
+    if (typeof window === 'undefined') return [];
 
-  useEffect(() => {
-    const stored = localStorage.getItem(FAVORITES_KEY);
-    if (stored) {
-      try {
-        setFavorites(JSON.parse(stored));
-      } catch (e) {
-        console.error('Error loading favorites:', e);
-      }
+    try {
+      const stored = window.localStorage.getItem(FAVORITES_KEY);
+      if (!stored) return [];
+
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+    } catch (e) {
+      console.error('Error loading favorites:', e);
+      return [];
     }
-  }, []);
+  });
 
   const addFavorite = (orgnr: string) => {
     if (!favorites.includes(orgnr)) {

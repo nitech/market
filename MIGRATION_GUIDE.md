@@ -41,6 +41,6 @@ Konverter `server/routes/api.ts` GET `/companies/:orgnr/roles` til Next.js Route
 - Oppdater alle relative imports
 
 ## Steg 6: Test og deploy
-- Test lokalt med `npm run dev`
+- Test lokalt med `bun run dev`
 - Deploy til Vercel
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CompanyWithRoles } from '../types';
 
 interface CompanyListProps {
@@ -11,6 +11,21 @@ interface CompanyListProps {
 
 export function CompanyList({ companies, loading, onViewDetails, favorites, onToggleFavorite }: CompanyListProps) {
   const [copiedOrgnr, setCopiedOrgnr] = useState<string | null>(null);
+
+  const dedupedCompanies = useMemo<CompanyWithRoles[]>(() => {
+    // React requires unique keys. Dedupe defensively in case the data source returns duplicates.
+    const seen = new Set<string>();
+    const result: CompanyWithRoles[] = [];
+
+    for (const company of companies) {
+      const id = company.organisasjonsnummer;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      result.push(company);
+    }
+
+    return result;
+  }, [companies]);
 
   const copyToClipboard = async (orgnr: string) => {
     try {
@@ -84,7 +99,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
     );
   }
 
-  if (companies.length === 0) {
+  if (dedupedCompanies.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-12 text-center">
         <p className="text-gray-600 text-lg">Ingen bedrifter funnet som matcher søkekriteriene.</p>
@@ -129,7 +144,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {companies.map((company) => (
+            {dedupedCompanies.map((company) => (
               <tr key={company.organisasjonsnummer} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   {onToggleFavorite && (
