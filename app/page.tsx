@@ -11,8 +11,10 @@ import { useCompanies } from '@/app/hooks/useCompanies';
 import { useFavorites } from '@/app/hooks/useFavorites';
 import type { SearchFilters } from '@/server/types';
 import { FranchiseEierskifteTool } from '@/app/components/FranchiseEierskifteTool';
+import { AuthControls } from '@/app/components/AuthControls';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<'search' | 'franchise'>('search');
   const {
     companies,
     loading,
@@ -41,61 +43,112 @@ export default function Home() {
     setSelectedOrgnr(null);
   };
 
+  const switchTab = (tab: 'search' | 'franchise') => {
+    setActiveTab(tab);
+    // Company details er knyttet til søk-resultater
+    setSelectedOrgnr(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Brønnøysundregistrene Dashboard
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Søk og analyser bedrifter for market research og candidate qualification
-          </p>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">
+                7markets
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Søk og analyser bedrifter for market research og candidate qualification
+              </p>
+            </div>
+
+            <div className="shrink-0 pt-1">
+              <AuthControls />
+            </div>
+          </div>
         </div>
       </header>
 
       <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <SearchFiltersComponent onSearch={handleSearch} loading={loading} />
-
-        <FranchiseEierskifteTool />
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">{error}</p>
+        <div className="mb-6">
+          <div className="flex gap-2 rounded-lg bg-gray-200 p-1">
+            <button
+              type="button"
+              onClick={() => switchTab('search')}
+              className={[
+                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition',
+                activeTab === 'search'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'bg-transparent text-gray-700 hover:text-gray-900',
+              ].join(' ')}
+            >
+              Søk
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTab('franchise')}
+              className={[
+                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition',
+                activeTab === 'franchise'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'bg-transparent text-gray-700 hover:text-gray-900',
+              ].join(' ')}
+            >
+              Franchise
+            </button>
           </div>
-        )}
+        </div>
 
-        {!loading && companies.length > 0 && (
+        {activeTab === 'search' && (
           <>
-            <Statistics companies={companies} totalFiltered={totalFiltered} />
-            <ExportButton companies={companies} />
+            <SearchFiltersComponent onSearch={handleSearch} loading={loading} />
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-800">{error}</p>
+              </div>
+            )}
+
+            {!loading && companies.length > 0 && (
+              <>
+                <Statistics companies={companies} totalFiltered={totalFiltered} />
+                <ExportButton companies={companies} />
+              </>
+            )}
+
+            <CompanyList
+              companies={companies}
+              loading={loading}
+              onViewDetails={handleViewDetails}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+            />
+
+            {!loading && companies.length > 0 && pagination && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={pagination.number || 0}
+                  totalPages={pagination.totalPages || 1}
+                  totalElements={pagination.totalElements || 0}
+                  onNext={nextPage}
+                  onPrev={prevPage}
+                  hasNext={hasNext}
+                  hasPrev={hasPrev}
+                />
+              </div>
+            )}
+
+            {selectedOrgnr && (
+              <CompanyDetails orgnr={selectedOrgnr} onClose={handleCloseDetails} />
+            )}
           </>
         )}
 
-        <CompanyList
-          companies={companies}
-          loading={loading}
-          onViewDetails={handleViewDetails}
-          favorites={favorites}
-          onToggleFavorite={toggleFavorite}
-        />
-
-        {!loading && companies.length > 0 && pagination && (
-          <div className="mt-6">
-            <Pagination
-              currentPage={pagination.number || 0}
-              totalPages={pagination.totalPages || 1}
-              totalElements={pagination.totalElements || 0}
-              onNext={nextPage}
-              onPrev={prevPage}
-              hasNext={hasNext}
-              hasPrev={hasPrev}
-            />
-          </div>
-        )}
-
-        {selectedOrgnr && (
-          <CompanyDetails orgnr={selectedOrgnr} onClose={handleCloseDetails} />
+        {activeTab === 'franchise' && (
+          <>
+            <FranchiseEierskifteTool />
+          </>
         )}
       </main>
     </div>

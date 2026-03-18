@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { AuthGate } from '@/app/components/AuthGate'
 
 export const metadata: Metadata = {
-  title: 'Brønnøysundregistrene Dashboard',
+  title: '7markets',
   description: 'Søk og analyser bedrifter for market research og candidate qualification',
 }
 
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="no">
-      <body>{children}</body>
+      <body>
+        <AuthGate>{children}</AuthGate>
+      </body>
     </html>
   )
 }
