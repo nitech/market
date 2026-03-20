@@ -12,9 +12,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // Hindre "flash" av innhold før auth er lastet ferdig.
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-3 p-6 text-sm text-gray-600">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+        <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-3 p-6 text-sm text-gray-600 dark:text-gray-400">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900 dark:border-gray-600 dark:border-t-gray-100" />
           <div>Laster inn...</div>
         </div>
       </div>

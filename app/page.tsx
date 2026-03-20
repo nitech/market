@@ -50,15 +50,15 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-md">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+      <header className="border-b border-gray-200/80 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
                 7markets
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Søk og analyser bedrifter for market research og candidate qualification
               </p>
             </div>
@@ -72,15 +72,15 @@ export default function Home() {
 
       <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <div className="flex gap-2 rounded-lg bg-gray-200 p-1">
+          <div className="flex gap-2 rounded-lg bg-gray-200 p-1 dark:bg-gray-800">
             <button
               type="button"
               onClick={() => switchTab('search')}
               className={[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition',
                 activeTab === 'search'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'bg-transparent text-gray-700 hover:text-gray-900',
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100 dark:shadow-md'
+                  : 'bg-transparent text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
               ].join(' ')}
             >
               Søk
@@ -91,8 +91,8 @@ export default function Home() {
               className={[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition',
                 activeTab === 'franchise'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'bg-transparent text-gray-700 hover:text-gray-900',
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100 dark:shadow-md'
+                  : 'bg-transparent text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
               ].join(' ')}
             >
               Franchise
@@ -105,8 +105,8 @@ export default function Home() {
             <SearchFiltersComponent onSearch={handleSearch} loading={loading} />
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <p className="text-red-800">{error}</p>
+              <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/40">
+                <p className="text-red-800 dark:text-red-200">{error}</p>
               </div>
             )}
 

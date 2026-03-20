@@ -16,13 +16,13 @@ export function Statistics({ companies, totalFiltered }: StatisticsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-sm font-medium text-gray-600 mb-1">Totalt antall resultater</h3>
-        <p className="text-3xl font-bold text-gray-800">{totalFiltered}</p>
+      <div className="rounded-lg border border-transparent bg-white p-6 shadow-md dark:border-gray-800 dark:bg-gray-900">
+        <h3 className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">Totalt antall resultater</h3>
+        <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{totalFiltered}</p>
       </div>
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-sm font-medium text-gray-600 mb-1">Gjennomsnittlig aksjekapital</h3>
-        <p className="text-3xl font-bold text-gray-800">
+      <div className="rounded-lg border border-transparent bg-white p-6 shadow-md dark:border-gray-800 dark:bg-gray-900">
+        <h3 className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">Gjennomsnittlig aksjekapital</h3>
+        <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">
           {new Intl.NumberFormat('no-NO', {
             style: 'currency',
             currency: 'NOK',
@@ -31,9 +31,9 @@ export function Statistics({ companies, totalFiltered }: StatisticsProps) {
           }).format(avgCapital)}
         </p>
       </div>
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-sm font-medium text-gray-600 mb-1">Med registrert kapital</h3>
-        <p className="text-3xl font-bold text-gray-800">{companiesWithCapital}</p>
+      <div className="rounded-lg border border-transparent bg-white p-6 shadow-md dark:border-gray-800 dark:bg-gray-900">
+        <h3 className="mb-1 text-sm font-medium text-gray-600 dark:text-gray-400">Med registrert kapital</h3>
+        <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">{companiesWithCapital}</p>
       </div>
     </div>
   );

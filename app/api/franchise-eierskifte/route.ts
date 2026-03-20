@@ -6,8 +6,9 @@ import type {
   UnderenheterResponse,
   Enhet,
 } from '@/server/types';
-import * as nodePath from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { dedupeFranchiseArray, normalizeFranchiseText } from '@/lib/franchiseList';
+import { getAdminAuth, getAdminFirestore } from '@/lib/firebaseAdmin';
+import { USER_SETTINGS_COLLECTION } from '@/lib/firebaseUserSettings';
 
 export const runtime = 'nodejs';
 
@@ -21,48 +22,21 @@ function toTimeMaybe(dateString?: string): number {
   return Number.isFinite(t) ? t : 0;
 }
 
-function normalizeText(s?: string | null): string {
-  return (s ?? '').trim().toLowerCase();
-}
-
-async function loadFranchisesFromCsv(): Promise<string[]> {
-  // On Vercel, the repo root files are not guaranteed to be present.
-  // We store the CSV under `public/` so Next includes it in the deployment.
-  const csvPath = nodePath.join(process.cwd(), 'public', 'franchise-utvalgt.csv');
-
-  let content: string;
-  try {
-    content = await readFile(csvPath, 'utf8');
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
+async function loadFranchisesForUser(uid: string): Promise<string[]> {
+  const firestore = getAdminFirestore();
+  if (!firestore) {
     throw new Error(
-      `Kunne ikke lese franchise-utvalgt.csv. Tried: ${csvPath}. Original error: ${msg}`
+      'Firestore Admin er ikke konfigurert. Sett FIREBASE_SERVICE_ACCOUNT_JSON i miljøvariabler (service account JSON som én linje).'
     );
   }
 
-  // Each line may be:
-  // - "FranchiseName" (current format)
-  // - "FranchiseName;True" (older format)
-  // We take everything before ';' and trim.
-  const lines = content
-    .split(/\r?\n/g)
-    .map((l) => l.replace(/^\uFEFF/, '').trim())
-    .filter(Boolean);
+  const snap = await firestore.collection(USER_SETTINGS_COLLECTION).doc(uid).get();
+  if (!snap.exists) return [];
 
-  const franchises = lines
-    .map((line) => line.split(';')[0]?.trim())
-    .filter(Boolean) as string[];
-
-  // De-dupe after normalization (case-insensitive)
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const f of franchises) {
-    const key = normalizeText(f);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    result.push(f);
-  }
-  return result;
+  const data = snap.data();
+  const raw = data?.franchises;
+  if (!Array.isArray(raw)) return [];
+  return dedupeFranchiseArray(raw);
 }
 
 async function fetchUnderenheterInWindow(params: {
@@ -79,7 +53,6 @@ async function fetchUnderenheterInWindow(params: {
 
   while (true) {
     const url = new URL(`${BRREG_API_BASE}/underenheter`);
-    // BRREG bruker norsk parameter: `fraDatoEierskifte` (ikke `fromDatoEierskifte`)
     url.searchParams.set('fraDatoEierskifte', fromDatoEierskifte);
     url.searchParams.set('tilDatoEierskifte', tilDatoEierskifte);
     url.searchParams.set('page', String(page));
@@ -87,7 +60,7 @@ async function fetchUnderenheterInWindow(params: {
 
     const response = await fetch(url.toString(), {
       headers: {
-        'Accept': 'application/vnd.brreg.enhetsregisteret.underenhet.v2+json',
+        Accept: 'application/vnd.brreg.enhetsregisteret.underenhet.v2+json',
       },
     });
 
@@ -97,7 +70,7 @@ async function fetchUnderenheterInWindow(params: {
         const text = await response.text();
         bodySnippet = text ? ` Body: ${text.slice(0, 500)}` : '';
       } catch {
-        // ignore - we already have status
+        // ignore
       }
       throw new Error(
         `BRREG underenheter error: ${response.status} ${response.statusText}.${bodySnippet}`
@@ -125,106 +98,166 @@ async function fetchUnderenheterInWindow(params: {
   return { items: all, truncated };
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const searchParams = request.nextUrl.searchParams;
-    const days = Number(searchParams.get('days') ?? '7');
-    const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 7;
+async function runEierskifteSearch(params: {
+  safeDays: number;
+  franchiseNames: string[];
+}): Promise<NextResponse> {
+  const { safeDays, franchiseNames } = params;
 
-    const now = new Date();
-    const tilDatoEierskifte = isoDate(now);
-    const from = new Date(now);
-    from.setDate(now.getDate() - safeDays);
-    const fromDatoEierskifte = isoDate(from);
+  const now = new Date();
+  const tilDatoEierskifte = isoDate(now);
+  const from = new Date(now);
+  from.setDate(now.getDate() - safeDays);
+  const fromDatoEierskifte = isoDate(from);
 
-    const franchiseNames = await loadFranchisesFromCsv();
-    const franchisePrefixes = franchiseNames.map((f) => ({
-      original: f,
-      lower: normalizeText(f),
-    }));
+  const franchisePrefixes = franchiseNames.map((f) => ({
+    original: f,
+    lower: normalizeFranchiseText(f),
+  }));
 
-    // 1) date-first: fetch underenheter in the window
-    // 2) then filter by franchise name prefix locally
-    const { items: underenheterRaw, truncated } = await fetchUnderenheterInWindow({
-      fromDatoEierskifte,
-      tilDatoEierskifte,
-      maxRecords: 10000,
-    });
+  const { items: underenheterRaw, truncated } = await fetchUnderenheterInWindow({
+    fromDatoEierskifte,
+    tilDatoEierskifte,
+    maxRecords: 10000,
+  });
 
-    const matches: { under: Underenhet; franchiseMatch: string }[] = [];
+  const matches: { under: Underenhet; franchiseMatch: string }[] = [];
 
-    for (const u of underenheterRaw) {
-      const underName = normalizeText(u.navn);
-      if (!underName) continue;
+  for (const u of underenheterRaw) {
+    const underName = normalizeFranchiseText(u.navn);
+    if (!underName) continue;
 
-      const matched = franchisePrefixes.find((p) => underName.startsWith(p.lower));
-      if (!matched) continue;
+    const matched = franchisePrefixes.find((p) => underName.startsWith(p.lower));
+    if (!matched) continue;
 
-      if (!u.overordnetEnhet) continue; // cannot resolve hovedenhet
+    if (!u.overordnetEnhet) continue;
 
-      matches.push({ under: u, franchiseMatch: matched.original });
-    }
+    matches.push({ under: u, franchiseMatch: matched.original });
+  }
 
-    // Fetch hovedenhet names
-    const uniqueMainOrgnrs = Array.from(new Set(matches.map((m) => m.under.overordnetEnhet).filter(Boolean))) as string[];
-    const mainNameByOrgnr = new Map<string, string | undefined>();
+  const uniqueMainOrgnrs = Array.from(
+    new Set(matches.map((m) => m.under.overordnetEnhet).filter(Boolean))
+  ) as string[];
+  const mainNameByOrgnr = new Map<string, string | undefined>();
 
-    // Sequential is slower but avoids flooding BRREG with calls.
-    for (const orgnr of uniqueMainOrgnrs) {
-      const response = await fetch(`${BRREG_API_BASE}/enheter/${orgnr}`, {
-        headers: {
-          'Accept': 'application/vnd.brreg.enhetsregisteret.enhet.v2+json',
-        },
-      });
-
-      if (!response.ok) {
-        // Skip silently; we still return orgnr.
-        mainNameByOrgnr.set(orgnr, undefined);
-        continue;
-      }
-
-      const data = (await response.json()) as Enhet;
-      mainNameByOrgnr.set(orgnr, data.navn);
-    }
-
-    const responseItems: FranchiseEierskifteItem[] = matches.map((m) => {
-      const u = m.under;
-      const mainOrgnr = u.overordnetEnhet as string;
-
-      return {
-        franchiseMatch: m.franchiseMatch,
-        underenhet: {
-          organisasjonsnummer: u.organisasjonsnummer,
-          navn: u.navn,
-          datoEierskifte: u.datoEierskifte,
-          epostadresse: u.epostadresse,
-          telefon: u.telefon,
-          mobil: u.mobil,
-          hjemmeside: u.hjemmeside,
-          postadresse: u.postadresse,
-          forretningsadresse: u.forretningsadresse,
-          beliggenhetsadresse: u.beliggenhetsadresse,
-        },
-        hovedenhet: {
-          organisasjonsnummer: mainOrgnr,
-          navn: mainNameByOrgnr.get(mainOrgnr),
-        },
-      };
-    });
-
-    responseItems.sort((a, b) => toTimeMaybe(b.underenhet.datoEierskifte) - toTimeMaybe(a.underenhet.datoEierskifte));
-
-    return NextResponse.json({
-      items: responseItems,
-      meta: {
-        safeDays,
-        fromDatoEierskifte,
-        tilDatoEierskifte,
-        fetchedUnderenheter: underenheterRaw.length,
-        matches: responseItems.length,
-        truncated,
+  for (const orgnr of uniqueMainOrgnrs) {
+    const response = await fetch(`${BRREG_API_BASE}/enheter/${orgnr}`, {
+      headers: {
+        Accept: 'application/vnd.brreg.enhetsregisteret.enhet.v2+json',
       },
     });
+
+    if (!response.ok) {
+      mainNameByOrgnr.set(orgnr, undefined);
+      continue;
+    }
+
+    const data = (await response.json()) as Enhet;
+    mainNameByOrgnr.set(orgnr, data.navn);
+  }
+
+  const responseItems: FranchiseEierskifteItem[] = matches.map((m) => {
+    const u = m.under;
+    const mainOrgnr = u.overordnetEnhet as string;
+
+    return {
+      franchiseMatch: m.franchiseMatch,
+      underenhet: {
+        organisasjonsnummer: u.organisasjonsnummer,
+        navn: u.navn,
+        datoEierskifte: u.datoEierskifte,
+        epostadresse: u.epostadresse,
+        telefon: u.telefon,
+        mobil: u.mobil,
+        hjemmeside: u.hjemmeside,
+        postadresse: u.postadresse,
+        forretningsadresse: u.forretningsadresse,
+        beliggenhetsadresse: u.beliggenhetsadresse,
+      },
+      hovedenhet: {
+        organisasjonsnummer: mainOrgnr,
+        navn: mainNameByOrgnr.get(mainOrgnr),
+      },
+    };
+  });
+
+  responseItems.sort(
+    (a, b) => toTimeMaybe(b.underenhet.datoEierskifte) - toTimeMaybe(a.underenhet.datoEierskifte)
+  );
+
+  return NextResponse.json({
+    items: responseItems,
+    meta: {
+      safeDays,
+      fromDatoEierskifte,
+      tilDatoEierskifte,
+      fetchedUnderenheter: underenheterRaw.length,
+      matches: responseItems.length,
+      truncated,
+      franchiseCount: franchiseNames.length,
+    },
+  });
+}
+
+async function verifyRequestUser(request: NextRequest): Promise<
+  { uid: string } | NextResponse
+> {
+  const authHeader = request.headers.get('authorization') ?? '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Mangler innlogging. Send Authorization: Bearer <ID-token> fra Firebase.' },
+      { status: 401 }
+    );
+  }
+
+  const adminAuth = getAdminAuth();
+  if (!adminAuth) {
+    return NextResponse.json(
+      {
+        error:
+          'Serveren mangler Firebase Admin (FIREBASE_SERVICE_ACCOUNT_JSON). Kreves for å verifisere innlogging.',
+      },
+      { status: 503 }
+    );
+  }
+
+  try {
+    const decoded = await adminAuth.verifyIdToken(token);
+    return { uid: decoded.uid };
+  } catch {
+    return NextResponse.json({ error: 'Ugyldig eller utløpt innlogging.' }, { status: 401 });
+  }
+}
+
+/** Klienten sender franchiser fra Firestore — da trengs ikke Admin Firestore på server. */
+export async function POST(request: NextRequest) {
+  try {
+    const authResult = await verifyRequestUser(request);
+    if (authResult instanceof NextResponse) return authResult;
+    const { uid } = authResult;
+
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Ugyldig JSON i forespørselen.' }, { status: 400 });
+    }
+
+    const b = body as { days?: unknown; franchises?: unknown };
+
+    const days = Number(b.days ?? 7);
+    const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 7;
+
+    let franchiseNames: string[];
+    if (Array.isArray(b.franchises)) {
+      franchiseNames = dedupeFranchiseArray(b.franchises);
+    } else {
+      franchiseNames = await loadFranchisesForUser(uid);
+    }
+
+    return runEierskifteSearch({ safeDays, franchiseNames });
   } catch (error) {
     return NextResponse.json(
       {
@@ -237,3 +270,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/** Bakoverkompatibel: henter franchiser via Admin SDK (krever service account + Firestore-tilgang). */
+export async function GET(request: NextRequest) {
+  try {
+    const authResult = await verifyRequestUser(request);
+    if (authResult instanceof NextResponse) return authResult;
+    const { uid } = authResult;
+
+    const searchParams = request.nextUrl.searchParams;
+    const days = Number(searchParams.get('days') ?? '7');
+    const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 7;
+
+    const franchiseNames = await loadFranchisesForUser(uid);
+    return runEierskifteSearch({ safeDays, franchiseNames });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        name: error instanceof Error ? error.name : undefined,
+        stack: error instanceof Error ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}

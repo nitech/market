@@ -9,3 +9,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=optional_measurement_id
 
+# Server-side: last ned service account JSON fra Firebase Console (Project settings → Service accounts)
+# og lim inn hele JSON som én linje (anbefalt for Vercel). Kreves for franchise-API (verifiserer ID-token og leser Firestore).
+# FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"...",...}
+

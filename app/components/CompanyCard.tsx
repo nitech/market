@@ -76,11 +76,11 @@ export function CompanyCard({ company, onViewDetails, isFavorite, onToggleFavori
     : 'Ikke oppgitt';
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="rounded-lg border border-transparent bg-white p-6 shadow-md transition-shadow hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-xl font-bold text-gray-800">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
               {company.navn || 'Navn ikke oppgitt'}
             </h3>
             {onToggleFavorite && (
@@ -95,7 +95,7 @@ export function CompanyCard({ company, onViewDetails, isFavorite, onToggleFavori
           </div>
           <button
             onClick={copyToClipboard}
-            className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer transition-colors text-left"
+            className="cursor-pointer text-left text-sm text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
             title={copied ? 'Kopiert!' : 'Klikk for å kopiere'}
           >
             Org.nr: {copied ? '✓ Kopiert' : company.organisasjonsnummer}
@@ -113,38 +113,38 @@ export function CompanyCard({ company, onViewDetails, isFavorite, onToggleFavori
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div>
-          <p className="text-gray-600 mb-1">
+          <p className="text-gray-600 mb-1 dark:text-gray-400">
             <span className="font-medium">Adresse:</span> {addressString}
           </p>
           {(() => {
             const dagligLederNavn = getDagligLederNavn(company.dagligLeder);
             return dagligLederNavn ? (
-              <p className="text-gray-600 mb-1">
+              <p className="text-gray-600 mb-1 dark:text-gray-400">
                 <span className="font-medium">Daglig leder:</span> {dagligLederNavn}
               </p>
             ) : null;
           })()}
           {company.organisasjonsform && (
-            <p className="text-gray-600 mb-1">
+            <p className="text-gray-600 mb-1 dark:text-gray-400">
               <span className="font-medium">Organisasjonsform:</span> {company.organisasjonsform.beskrivelse || company.organisasjonsform.kode}
             </p>
           )}
         </div>
 
         <div>
-          <p className="text-gray-600 mb-1">
+          <p className="text-gray-600 mb-1 dark:text-gray-400">
             <span className="font-medium">Aksjekapital:</span> {formatCurrency(company.kapital?.belop)}
           </p>
-          <p className="text-gray-600 mb-1">
+          <p className="text-gray-600 mb-1 dark:text-gray-400">
             <span className="font-medium">Registrert:</span> {formatDate(company.registreringsdatoEnhetsregisteret)}
           </p>
           {company.stiftelsesdato && (
-            <p className="text-gray-600 mb-1">
+            <p className="text-gray-600 mb-1 dark:text-gray-400">
               <span className="font-medium">Stiftet:</span> {formatDate(company.stiftelsesdato)}
             </p>
           )}
           {company.naeringskode1 && (
-            <p className="text-gray-600 mb-1">
+            <p className="text-gray-600 mb-1 dark:text-gray-400">
               <span className="font-medium">Næringskode:</span> {company.naeringskode1.kode} - {company.naeringskode1.beskrivelse}
             </p>
           )}
@@ -152,7 +152,7 @@ export function CompanyCard({ company, onViewDetails, isFavorite, onToggleFavori
       </div>
 
       {company.antallAnsatte !== undefined && (
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           <span className="font-medium">Ansatte:</span> {company.antallAnsatte}
         </p>
       )}

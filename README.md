@@ -71,12 +71,15 @@ Dette oppsettet støtter:
 
 ### 3. Sikkerhetsregler (anbefalt utgangspunkt)
 
-**Firestore (favorites + filer per bruker):**
+**Firestore (favorites + filer + franchise-innstillinger per bruker):** Se også `firestore.rules` i repo.
 ```txt
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /userSettings/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }

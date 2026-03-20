@@ -94,58 +94,58 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-4 text-gray-600">Laster bedrifter...</span>
+        <span className="ml-4 text-gray-600 dark:text-gray-400">Laster bedrifter...</span>
       </div>
     );
   }
 
   if (dedupedCompanies.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-12 text-center">
-        <p className="text-gray-600 text-lg">Ingen bedrifter funnet som matcher søkekriteriene.</p>
-        <p className="text-gray-500 text-sm mt-2">Prøv å justere filtrene dine.</p>
+      <div className="rounded-lg border border-transparent bg-white p-12 text-center shadow-md dark:border-gray-800 dark:bg-gray-900">
+        <p className="text-lg text-gray-600 dark:text-gray-400">Ingen bedrifter funnet som matcher søkekriteriene.</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">Prøv å justere filtrene dine.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden w-full">
-      <div className="overflow-x-auto w-full">
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+    <div className="w-full overflow-hidden rounded-lg border border-transparent bg-white shadow-md dark:border-gray-800 dark:bg-gray-900">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800/80">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Favoritt
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Navn
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Org.nr
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Adresse
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Daglig leder
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Aksjekapital
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Registrert
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Næringskode
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Handling
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {dedupedCompanies.map((company) => (
-              <tr key={company.organisasjonsnummer} className="hover:bg-gray-50">
+              <tr key={company.organisasjonsnummer} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
                 <td className="px-6 py-4 whitespace-nowrap">
                   {onToggleFavorite && (
                     <button
@@ -158,33 +158,33 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{company.navn || 'Navn ikke oppgitt'}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{company.navn || 'Navn ikke oppgitt'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
                     onClick={() => copyToClipboard(company.organisasjonsnummer)}
-                    className="text-sm text-gray-500 hover:text-blue-600 cursor-pointer transition-colors"
+                    className="cursor-pointer text-sm text-gray-500 transition-colors hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
                     title={copiedOrgnr === company.organisasjonsnummer ? 'Kopiert!' : 'Klikk for å kopiere'}
                   >
                     {copiedOrgnr === company.organisasjonsnummer ? '✓ Kopiert' : company.organisasjonsnummer}
                   </button>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-500 max-w-xs truncate" title={getAddressString(company)}>
+                  <div className="max-w-xs truncate text-sm text-gray-500 dark:text-gray-400" title={getAddressString(company)}>
                     {getAddressString(company)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{getDagligLederNavn(company.dagligLeder) || ''}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{getDagligLederNavn(company.dagligLeder) || ''}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{formatCurrency(company.kapital?.belop)}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{formatCurrency(company.kapital?.belop)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{formatDate(company.registreringsdatoEnhetsregisteret)}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(company.registreringsdatoEnhetsregisteret)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
                     {company.naeringskode1?.kode && (
                       <span title={company.naeringskode1.beskrivelse}>
                         {company.naeringskode1.kode}
@@ -196,7 +196,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                   {onViewDetails && (
                     <button
                       onClick={() => onViewDetails(company.organisasjonsnummer)}
-                      className="text-blue-600 hover:text-blue-900 focus:outline-none"
+                      className="text-blue-600 hover:text-blue-800 focus:outline-none dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       Detaljer
                     </button>

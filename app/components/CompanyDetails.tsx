@@ -75,10 +75,10 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+        <div className="mx-4 w-full max-w-2xl rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600 dark:border-blue-400"></div>
           </div>
         </div>
       </div>
@@ -87,12 +87,12 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4">
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+        <div className="mx-4 w-full max-w-2xl rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
+          <p className="mb-4 text-red-600 dark:text-red-400">{error}</p>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+            className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             Lukk
           </button>
@@ -104,28 +104,28 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
   if (!company) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">{company.navn || 'Navn ikke oppgitt'}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 dark:bg-black/70">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-900">
+        <div className="mb-6 flex items-start justify-between">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{company.navn || 'Navn ikke oppgitt'}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="text-2xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             ×
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <h3 className="text-xl font-semibold mb-4 text-gray-700">Grunnleggende informasjon</h3>
+            <h3 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Grunnleggende informasjon</h3>
             <dl className="space-y-2">
               <div>
-                <dt className="font-medium text-gray-600">Organisasjonsnummer:</dt>
-                <dd className="text-gray-800">
+                <dt className="font-medium text-gray-600 dark:text-gray-400">Organisasjonsnummer:</dt>
+                <dd className="text-gray-800 dark:text-gray-200">
                   <button
                     onClick={copyToClipboard}
-                    className="hover:text-blue-600 cursor-pointer transition-colors"
+                    className="cursor-pointer transition-colors hover:text-blue-600 dark:hover:text-blue-400"
                     title={copied ? 'Kopiert!' : 'Klikk for å kopiere'}
                   >
                     {copied ? '✓ Kopiert' : company.organisasjonsnummer}
@@ -134,55 +134,55 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
               </div>
               {company.organisasjonsform && (
                 <div>
-                  <dt className="font-medium text-gray-600">Organisasjonsform:</dt>
-                  <dd className="text-gray-800">{company.organisasjonsform.beskrivelse || company.organisasjonsform.kode}</dd>
+                  <dt className="font-medium text-gray-600 dark:text-gray-400">Organisasjonsform:</dt>
+                  <dd className="text-gray-800 dark:text-gray-200">{company.organisasjonsform.beskrivelse || company.organisasjonsform.kode}</dd>
                 </div>
               )}
               {company.registreringsdatoEnhetsregisteret && (
                 <div>
-                  <dt className="font-medium text-gray-600">Registrert:</dt>
-                  <dd className="text-gray-800">{formatDate(company.registreringsdatoEnhetsregisteret)}</dd>
+                  <dt className="font-medium text-gray-600 dark:text-gray-400">Registrert:</dt>
+                  <dd className="text-gray-800 dark:text-gray-200">{formatDate(company.registreringsdatoEnhetsregisteret)}</dd>
                 </div>
               )}
               {company.stiftelsesdato && (
                 <div>
-                  <dt className="font-medium text-gray-600">Stiftet:</dt>
-                  <dd className="text-gray-800">{formatDate(company.stiftelsesdato)}</dd>
+                  <dt className="font-medium text-gray-600 dark:text-gray-400">Stiftet:</dt>
+                  <dd className="text-gray-800 dark:text-gray-200">{formatDate(company.stiftelsesdato)}</dd>
                 </div>
               )}
               {company.antallAnsatte !== undefined && (
                 <div>
-                  <dt className="font-medium text-gray-600">Antall ansatte:</dt>
-                  <dd className="text-gray-800">{company.antallAnsatte}</dd>
+                  <dt className="font-medium text-gray-600 dark:text-gray-400">Antall ansatte:</dt>
+                  <dd className="text-gray-800 dark:text-gray-200">{company.antallAnsatte}</dd>
                 </div>
               )}
             </dl>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold mb-4 text-gray-700">Kapital</h3>
+            <h3 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Kapital</h3>
             {company.kapital && (
               <dl className="space-y-2">
                 <div>
-                  <dt className="font-medium text-gray-600">Beløp:</dt>
-                  <dd className="text-gray-800">{formatCurrency(company.kapital.belop)}</dd>
+                  <dt className="font-medium text-gray-600 dark:text-gray-400">Beløp:</dt>
+                  <dd className="text-gray-800 dark:text-gray-200">{formatCurrency(company.kapital.belop)}</dd>
                 </div>
                 {company.kapital.antallAksjer && (
                   <div>
-                    <dt className="font-medium text-gray-600">Antall aksjer:</dt>
-                    <dd className="text-gray-800">{company.kapital.antallAksjer.toLocaleString('no-NO')}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Antall aksjer:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.kapital.antallAksjer.toLocaleString('no-NO')}</dd>
                   </div>
                 )}
                 {company.kapital.type && (
                   <div>
-                    <dt className="font-medium text-gray-600">Type:</dt>
-                    <dd className="text-gray-800">{company.kapital.type}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Type:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.kapital.type}</dd>
                   </div>
                 )}
                 {company.kapital.valuta && (
                   <div>
-                    <dt className="font-medium text-gray-600">Valuta:</dt>
-                    <dd className="text-gray-800">{company.kapital.valuta}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Valuta:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.kapital.valuta}</dd>
                   </div>
                 )}
               </dl>
@@ -191,30 +191,30 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
 
           {company.forretningsadresse && (
             <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">Forretningsadresse</h3>
+              <h3 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Forretningsadresse</h3>
               <dl className="space-y-2">
                 {company.forretningsadresse.adresse && (
                   <div>
-                    <dt className="font-medium text-gray-600">Adresse:</dt>
-                    <dd className="text-gray-800">{company.forretningsadresse.adresse.join(', ')}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Adresse:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.forretningsadresse.adresse.join(', ')}</dd>
                   </div>
                 )}
                 {company.forretningsadresse.postnummer && (
                   <div>
-                    <dt className="font-medium text-gray-600">Postnummer:</dt>
-                    <dd className="text-gray-800">{company.forretningsadresse.postnummer}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Postnummer:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.forretningsadresse.postnummer}</dd>
                   </div>
                 )}
                 {company.forretningsadresse.poststed && (
                   <div>
-                    <dt className="font-medium text-gray-600">Poststed:</dt>
-                    <dd className="text-gray-800">{company.forretningsadresse.poststed}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Poststed:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.forretningsadresse.poststed}</dd>
                   </div>
                 )}
                 {company.forretningsadresse.kommune && (
                   <div>
-                    <dt className="font-medium text-gray-600">Kommune:</dt>
-                    <dd className="text-gray-800">{company.forretningsadresse.kommune}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Kommune:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.forretningsadresse.kommune}</dd>
                   </div>
                 )}
               </dl>
@@ -223,24 +223,24 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
 
           {(company.naeringskode1 || company.naeringskode2 || company.naeringskode3) && (
             <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">Næringskoder</h3>
+              <h3 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Næringskoder</h3>
               <dl className="space-y-2">
                 {company.naeringskode1 && (
                   <div>
-                    <dt className="font-medium text-gray-600">Hovednæring:</dt>
-                    <dd className="text-gray-800">{company.naeringskode1.kode} - {company.naeringskode1.beskrivelse}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Hovednæring:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.naeringskode1.kode} - {company.naeringskode1.beskrivelse}</dd>
                   </div>
                 )}
                 {company.naeringskode2 && (
                   <div>
-                    <dt className="font-medium text-gray-600">Næring 2:</dt>
-                    <dd className="text-gray-800">{company.naeringskode2.kode} - {company.naeringskode2.beskrivelse}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Næring 2:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.naeringskode2.kode} - {company.naeringskode2.beskrivelse}</dd>
                   </div>
                 )}
                 {company.naeringskode3 && (
                   <div>
-                    <dt className="font-medium text-gray-600">Næring 3:</dt>
-                    <dd className="text-gray-800">{company.naeringskode3.kode} - {company.naeringskode3.beskrivelse}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Næring 3:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.naeringskode3.kode} - {company.naeringskode3.beskrivelse}</dd>
                   </div>
                 )}
               </dl>
@@ -249,31 +249,31 @@ export function CompanyDetails({ orgnr, onClose }: CompanyDetailsProps) {
 
           {(company.epostadresse || company.telefon || company.mobil || company.hjemmeside) && (
             <div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">Kontaktinformasjon</h3>
+              <h3 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Kontaktinformasjon</h3>
               <dl className="space-y-2">
                 {company.epostadresse && (
                   <div>
-                    <dt className="font-medium text-gray-600">E-post:</dt>
-                    <dd className="text-gray-800">{company.epostadresse}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">E-post:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.epostadresse}</dd>
                   </div>
                 )}
                 {company.telefon && (
                   <div>
-                    <dt className="font-medium text-gray-600">Telefon:</dt>
-                    <dd className="text-gray-800">{company.telefon}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Telefon:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.telefon}</dd>
                   </div>
                 )}
                 {company.mobil && (
                   <div>
-                    <dt className="font-medium text-gray-600">Mobil:</dt>
-                    <dd className="text-gray-800">{company.mobil}</dd>
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Mobil:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">{company.mobil}</dd>
                   </div>
                 )}
                 {company.hjemmeside && (
                   <div>
-                    <dt className="font-medium text-gray-600">Hjemmeside:</dt>
-                    <dd className="text-gray-800">
-                      <a href={`https://${company.hjemmeside}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <dt className="font-medium text-gray-600 dark:text-gray-400">Hjemmeside:</dt>
+                    <dd className="text-gray-800 dark:text-gray-200">
+                      <a href={`https://${company.hjemmeside}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">
                         {company.hjemmeside}
                       </a>
                     </dd>

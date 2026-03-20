@@ -252,12 +252,12 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Søkefiltre</h2>
+    <div className="mb-6 rounded-lg border border-transparent bg-white p-6 shadow-md dark:border-gray-800 dark:bg-gray-900">
+      <h2 className="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-100">Søkefiltre</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="minAksjekapital" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="minAksjekapital" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Minimums aksjekapital (kr)
             </label>
             <input
@@ -265,7 +265,7 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
               id="minAksjekapital"
               value={minAksjekapital}
               onChange={(e) => setMinAksjekapital(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-950 dark:text-gray-100"
               min="0"
               step="1000"
               placeholder="50000"
@@ -273,7 +273,7 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
           </div>
 
           <div>
-            <label htmlFor="navn" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="navn" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Bedriftsnavn (valgfritt)
             </label>
             <input
@@ -281,13 +281,13 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
               id="navn"
               value={navn}
               onChange={(e) => setNavn(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-950 dark:text-gray-100"
               placeholder="Søk på navn..."
             />
           </div>
 
           <div>
-            <label htmlFor="fraDato" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="fraDato" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Fra registreringsdato
             </label>
             <input
@@ -295,14 +295,14 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
               id="fraDato"
               value={fraDato}
               onChange={(e) => setFraDato(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-950 dark:text-gray-100"
               placeholder="dd.mm.yyyy"
               pattern="\d{2}\.\d{2}\.\d{4}"
             />
           </div>
 
           <div>
-            <label htmlFor="tilDato" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="tilDato" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Til registreringsdato
             </label>
             <input
@@ -310,7 +310,7 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
               id="tilDato"
               value={tilDato}
               onChange={(e) => setTilDato(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-950 dark:text-gray-100"
               placeholder="dd.mm.yyyy"
               pattern="\d{2}\.\d{2}\.\d{4}"
             />
@@ -318,7 +318,7 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Organisasjonsform (valgfritt)
           </label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -330,27 +330,27 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
                   onChange={() => handleOrganisasjonsformChange(form.value)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{form.label}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{form.label}</span>
               </label>
             ))}
           </div>
         </div>
 
-        <div className="border-t pt-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Næringskode-filtre</h3>
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
+          <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Næringskode-filtre</h3>
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Søk og legg til næringskoder. Bruk backspace for å fjerne siste valg.
           </p>
           
           <div className="relative" ref={searchContainerRef}>
-            <label htmlFor="naeringskodeSearch" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="naeringskodeSearch" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Søk og legg til næringskoder
             </label>
-            <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 min-h-[42px]">
+            <div className="flex min-h-[42px] flex-wrap gap-2 rounded-md border border-gray-300 bg-white p-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 dark:border-gray-600 dark:bg-gray-950">
               {inkluderNaeringskoder.map((code) => (
                 <span
                   key={code}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm"
+                  className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-sm text-blue-800 dark:bg-blue-950 dark:text-blue-200"
                 >
                   <span>{getNaeringskodeLabel(code)}</span>
                   <button
@@ -378,28 +378,28 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
                     setShowSearchResults(true);
                   }
                 }}
-                className="flex-1 min-w-[120px] outline-none bg-transparent text-sm"
+                className="min-w-[120px] flex-1 bg-transparent text-sm text-gray-900 outline-none dark:text-gray-100"
                 placeholder="Søk på kode eller navn..."
               />
             </div>
 
             {/* Search results dropdown */}
             {showSearchResults && filteredNaeringskoder.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-900">
                 {filteredNaeringskoder.map((nk, index) => (
                   <button
                     key={nk.code}
                     type="button"
                     onClick={() => handleAddNaeringskode(nk.code)}
                     onMouseEnter={() => setSelectedIndex(index)}
-                    className={`w-full text-left px-4 py-2 focus:outline-none ${
+                    className={`w-full px-4 py-2 text-left focus:outline-none ${
                       index === selectedIndex
-                        ? 'bg-blue-50 border-l-2 border-blue-500'
-                        : 'hover:bg-gray-50'
+                        ? 'border-l-2 border-blue-500 bg-blue-50 dark:bg-blue-950/50 dark:border-blue-400'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                   >
-                    <span className="text-sm font-semibold text-gray-900">{nk.code}</span>
-                    <span className="text-sm text-gray-600 ml-2">– {nk.name}</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{nk.code}</span>
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">– {nk.name}</span>
                   </button>
                 ))}
               </div>
