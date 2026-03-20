@@ -1,26 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Design Tokens - GeoSales Dark Theme */
+  --gs-bg-primary: #0d0e11;
+  --gs-bg-secondary: #16181d;
+  --gs-bg-tertiary: #1e2128;
+  --gs-bg-elevated: #242830;
+  --gs-bg-card: #1a1d22;
+
+  --gs-border-default: #2a2d35;
+  --gs-border-hover: #3a3e48;
+  --gs-border-active: #4a5060;
+
+  --gs-text-primary: #ffffff;
+  --gs-text-secondary: #9ca3af;
+  --gs-text-tertiary: #6b7280;
+  --gs-text-muted: #4b5563;
+
+  /* Accent Colors */
+  --gs-accent-lime: #a3e635;
+  --gs-accent-lime-light: #bef264;
+  --gs-accent-lime-dark: #84cc16;
+  --gs-accent-orange: #f97316;
+  --gs-accent-red: #ef4444;
+  --gs-accent-green: #22c55e;
+  --gs-accent-blue: #3b82f6;
+  --gs-accent-yellow: #eab308;
+
+  /* Status Colors */
+  --gs-success: #22c55e;
+  --gs-warning: #f59e0b;
+  --gs-error: #ef4444;
+  --gs-info: #3b82f6;
+
+  /* Gradients */
+  --gs-gradient-lime: linear-gradient(135deg, #a3e635 0%, #84cc16 100%);
+  --gs-gradient-card: linear-gradient(180deg, #242830 0%, #1e2128 100%);
+
+  /* Shadows */
+  --gs-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --gs-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --gs-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --gs-shadow-glow-lime: 0 0 20px rgba(163, 230, 53, 0.3);
+
+  /* Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html.dark {
   color-scheme: dark;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--gs-bg-primary);
+  color: var(--gs-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gs-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gs-border-hover);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gs-border-active);
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(163, 230, 53, 0.3);
+  color: var(--gs-text-primary);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--gs-accent-lime);
+  outline-offset: 2px;
+}
+
+/* Utility Classes */
+@layer utilities {
+  .gs-gradient-text {
+    background: var(--gs-gradient-lime);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gs-glow-lime {
+    box-shadow: var(--gs-shadow-glow-lime);
+  }
+
+  .gs-card {
+    background: var(--gs-bg-card);
+    border: 1px solid var(--gs-border-default);
+    border-radius: var(--radius-md);
+  }
+
+  .gs-card-hover {
+    transition: all var(--transition-base);
+  }
+
+  .gs-card-hover:hover {
+    border-color: var(--gs-border-hover);
+    background: var(--gs-bg-elevated);
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(163, 230, 53, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(163, 230, 53, 0.6);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

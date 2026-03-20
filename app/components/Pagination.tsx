@@ -8,6 +8,19 @@ interface PaginationProps {
   hasPrev: boolean;
 }
 
+const Icons = {
+  chevronLeft: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m15 18-6-6 6-6"/>
+    </svg>
+  ),
+  chevronRight: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 18 6-6-6-6"/>
+    </svg>
+  ),
+};
+
 export function Pagination({
   currentPage,
   totalPages,
@@ -18,27 +31,88 @@ export function Pagination({
   hasPrev,
 }: PaginationProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-transparent bg-white p-4 shadow-md dark:border-gray-800 dark:bg-gray-900">
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Side {currentPage + 1} av {totalPages || 1} ({totalElements} totalt)
+    <div
+      className="flex items-center justify-between rounded-xl p-4"
+      style={{
+        background: 'var(--gs-bg-card)',
+        border: '1px solid var(--gs-border-default)',
+      }}
+    >
+      <div className="text-sm" style={{ color: 'var(--gs-text-secondary)' }}>
+        <span style={{ color: 'var(--gs-text-primary)' }}>Side {currentPage + 1} av {totalPages || 1}</span>
+        <span className="mx-2" style={{ color: 'var(--gs-text-tertiary)' }}>•</span>
+        <span style={{ color: 'var(--gs-text-tertiary)' }}>{totalElements} totalt</span>
       </div>
-      <div className="flex space-x-2">
+
+      <div className="flex items-center gap-2">
         <button
           onClick={onPrev}
           disabled={!hasPrev}
-          className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          style={{
+            background: hasPrev ? 'var(--gs-bg-tertiary)' : 'transparent',
+            border: '1px solid var(--gs-border-default)',
+            color: hasPrev ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)',
+            cursor: hasPrev ? 'pointer' : 'not-allowed',
+            opacity: hasPrev ? 1 : 0.5,
+          }}
         >
+          {Icons.chevronLeft}
           Forrige
         </button>
+
+        {/* Page numbers */}
+        <div className="flex items-center gap-1">
+          {Array.from({ length: Math.min(5, totalPages || 1) }, (_, i) => {
+            const pageNum = i;
+            const isActive = pageNum === currentPage;
+            return (
+              <button
+                key={pageNum}
+                className="w-9 h-9 rounded-lg text-sm font-medium transition-all duration-200"
+                style={{
+                  background: isActive ? 'var(--gs-accent-lime)' : 'transparent',
+                  color: isActive ? 'var(--gs-bg-primary)' : 'var(--gs-text-secondary)',
+                  border: isActive ? 'none' : '1px solid var(--gs-border-default)',
+                }}
+              >
+                {pageNum + 1}
+              </button>
+            );
+          })}
+          {totalPages > 5 && (
+            <>
+              <span className="px-1" style={{ color: 'var(--gs-text-tertiary)' }}>...</span>
+              <button
+                className="w-9 h-9 rounded-lg text-sm font-medium transition-all duration-200"
+                style={{
+                  background: 'transparent',
+                  color: 'var(--gs-text-secondary)',
+                  border: '1px solid var(--gs-border-default)',
+                }}
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+        </div>
+
         <button
           onClick={onNext}
           disabled={!hasNext}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          style={{
+            background: hasNext ? 'var(--gs-accent-lime)' : 'var(--gs-bg-tertiary)',
+            border: hasNext ? 'none' : '1px solid var(--gs-border-default)',
+            color: hasNext ? 'var(--gs-bg-primary)' : 'var(--gs-text-tertiary)',
+            cursor: hasNext ? 'pointer' : 'not-allowed',
+            opacity: hasNext ? 1 : 0.5,
+          }}
         >
           Neste
+          {Icons.chevronRight}
         </button>
       </div>
     </div>
   );
 }
-
