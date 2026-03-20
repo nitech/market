@@ -7,8 +7,6 @@ import type {
   Enhet,
 } from '@/server/types';
 import { dedupeFranchiseArray, normalizeFranchiseText } from '@/lib/franchiseList';
-import { getAdminAuth, getAdminFirestore } from '@/lib/firebaseAdmin';
-import { USER_SETTINGS_COLLECTION } from '@/lib/firebaseUserSettings';
 
 export const runtime = 'nodejs';
 
@@ -20,23 +18,6 @@ function toTimeMaybe(dateString?: string): number {
   if (!dateString) return 0;
   const t = new Date(dateString).getTime();
   return Number.isFinite(t) ? t : 0;
-}
-
-async function loadFranchisesForUser(uid: string): Promise<string[]> {
-  const firestore = getAdminFirestore();
-  if (!firestore) {
-    throw new Error(
-      'Firestore Admin er ikke konfigurert. Sett FIREBASE_SERVICE_ACCOUNT_JSON i miljøvariabler (service account JSON som én linje).'
-    );
-  }
-
-  const snap = await firestore.collection(USER_SETTINGS_COLLECTION).doc(uid).get();
-  if (!snap.exists) return [];
-
-  const data = snap.data();
-  const raw = data?.franchises;
-  if (!Array.isArray(raw)) return [];
-  return dedupeFranchiseArray(raw);
 }
 
 async function fetchUnderenheterInWindow(params: {
@@ -199,45 +180,9 @@ async function runEierskifteSearch(params: {
   });
 }
 
-async function verifyRequestUser(request: NextRequest): Promise<
-  { uid: string } | NextResponse
-> {
-  const authHeader = request.headers.get('authorization') ?? '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
-
-  if (!token) {
-    return NextResponse.json(
-      { error: 'Mangler innlogging. Send Authorization: Bearer <ID-token> fra Firebase.' },
-      { status: 401 }
-    );
-  }
-
-  const adminAuth = getAdminAuth();
-  if (!adminAuth) {
-    return NextResponse.json(
-      {
-        error:
-          'Serveren mangler Firebase Admin (FIREBASE_SERVICE_ACCOUNT_JSON). Kreves for å verifisere innlogging.',
-      },
-      { status: 503 }
-    );
-  }
-
-  try {
-    const decoded = await adminAuth.verifyIdToken(token);
-    return { uid: decoded.uid };
-  } catch {
-    return NextResponse.json({ error: 'Ugyldig eller utløpt innlogging.' }, { status: 401 });
-  }
-}
-
-/** Klienten sender franchiser fra Firestore — da trengs ikke Admin Firestore på server. */
+/** Klienten sender franchiser fra Firestore. */
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await verifyRequestUser(request);
-    if (authResult instanceof NextResponse) return authResult;
-    const { uid } = authResult;
-
     let body: unknown;
     try {
       body = await request.json();
@@ -250,12 +195,17 @@ export async function POST(request: NextRequest) {
     const days = Number(b.days ?? 7);
     const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 7;
 
-    let franchiseNames: string[];
-    if (Array.isArray(b.franchises)) {
-      franchiseNames = dedupeFranchiseArray(b.franchises);
-    } else {
-      franchiseNames = await loadFranchisesForUser(uid);
+    if (!Array.isArray(b.franchises)) {
+      return NextResponse.json(
+        {
+          error:
+            'Mangler franchiser i request body. Send { franchises: string[] } fra klienten.',
+        },
+        { status: 400 }
+      );
     }
+
+    const franchiseNames = dedupeFranchiseArray(b.franchises);
 
     return runEierskifteSearch({ safeDays, franchiseNames });
   } catch (error) {
@@ -270,27 +220,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/** Bakoverkompatibel: henter franchiser via Admin SDK (krever service account + Firestore-tilgang). */
-export async function GET(request: NextRequest) {
-  try {
-    const authResult = await verifyRequestUser(request);
-    if (authResult instanceof NextResponse) return authResult;
-    const { uid } = authResult;
-
-    const searchParams = request.nextUrl.searchParams;
-    const days = Number(searchParams.get('days') ?? '7');
-    const safeDays = Number.isFinite(days) && days > 0 ? Math.floor(days) : 7;
-
-    const franchiseNames = await loadFranchisesForUser(uid);
-    return runEierskifteSearch({ safeDays, franchiseNames });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        name: error instanceof Error ? error.name : undefined,
-        stack: error instanceof Error ? error.stack : undefined,
-      },
-      { status: 500 }
-    );
-  }
+export async function GET() {
+  return NextResponse.json(
+    { error: 'Bruk POST med body: { days, franchises }.' },
+    { status: 405 }
+  );
 }
