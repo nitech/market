@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { doc, getDoc, getDocFromServer } from 'firebase/firestore';
+import * as XLSX from 'xlsx';
 import { useAuth } from '@/app/hooks/useAuth';
 import { db } from '@/app/lib/firebaseClient';
 import { firebaseErrorMessage } from '@/app/lib/firebaseErrorMessage';
@@ -108,6 +109,16 @@ const Icons = {
       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
     </svg>
   ),
+  fileSpreadsheet: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <path d="M8 13h2"/>
+      <path d="M8 17h2"/>
+      <path d="M14 13h2"/>
+      <path d="M14 17h2"/>
+    </svg>
+  ),
 };
 
 async function readFranchisesForUser(uid: string): Promise<string[]> {
@@ -169,6 +180,8 @@ export function FranchiseEierskifteTool() {
   } | null>(null);
 
   const [copiedUnderOrgnr, setCopiedUnderOrgnr] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exported, setExported] = useState(false);
 
   const rows = useMemo(() => items, [items]);
 
@@ -180,6 +193,60 @@ export function FranchiseEierskifteTool() {
     } catch (err) {
       console.error('Failed to copy:', err);
     }
+  };
+
+  const exportToExcel = () => {
+    if (rows.length === 0) return;
+
+    setExporting(true);
+
+    // Prepare data for Excel
+    const data = rows.map(row => ({
+      'Franchise': row.franchiseMatch,
+      'Underenhet org.nr': row.underenhet.organisasjonsnummer,
+      'Underenhet navn': row.underenhet.navn || 'Navn ikke oppgitt',
+      'Dato eierskifte': formatDate(row.underenhet.datoEierskifte),
+      'Hovedenhet org.nr': row.hovedenhet.organisasjonsnummer,
+      'Hovedenhet navn': row.hovedenhet.navn || 'Navn ikke oppgitt',
+      'Telefon': row.underenhet.telefon || '',
+      'E-post': row.underenhet.epostadresse || '',
+      'Hjemmeside': row.underenhet.hjemmeside || '',
+      'Adresse': getAddressString(row.underenhet.forretningsadresse || row.underenhet.postadresse),
+    }));
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Set column widths
+    const colWidths = [
+      { wch: 20 }, // Franchise
+      { wch: 15 }, // Underenhet org.nr
+      { wch: 35 }, // Underenhet navn
+      { wch: 15 }, // Dato eierskifte
+      { wch: 15 }, // Hovedenhet org.nr
+      { wch: 35 }, // Hovedenhet navn
+      { wch: 15 }, // Telefon
+      { wch: 25 }, // E-post
+      { wch: 25 }, // Hjemmeside
+      { wch: 40 }, // Adresse
+    ];
+    ws['!cols'] = colWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Franchise eierskifte');
+
+    // Generate filename with date
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `franchise_eierskifte_${dateStr}.xlsx`;
+
+    // Write file and trigger download
+    XLSX.writeFile(wb, filename);
+
+    // Show success state
+    setExporting(false);
+    setExported(true);
+    setTimeout(() => setExported(false), 2000);
   };
 
   const fetchTreff = async () => {
@@ -417,14 +484,38 @@ export function FranchiseEierskifteTool() {
 
       {/* Meta info */}
       {meta && (
-        <div className="px-5 py-3 text-sm" style={{ color: 'var(--gs-text-tertiary)', borderBottom: rows.length > 0 ? '1px solid var(--gs-border-default)' : 'none' }}>
-          <span style={{ color: 'var(--gs-text-secondary)' }}>{meta.fromDatoEierskifte}</span>
-          {' → '}
-          <span style={{ color: 'var(--gs-text-secondary)' }}>{meta.tilDatoEierskifte}</span>
-          <span className="mx-2">•</span>
-          {meta.franchiseCount ?? '—'} franchiser
-          <span className="mx-2">•</span>
-          <span style={{ color: 'var(--gs-accent-lime)' }}>{meta.matches} treff</span>
+        <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: rows.length > 0 ? '1px solid var(--gs-border-default)' : 'none' }}>
+          <div className="text-sm" style={{ color: 'var(--gs-text-tertiary)' }}>
+            <span style={{ color: 'var(--gs-text-secondary)' }}>{meta.fromDatoEierskifte}</span>
+            {' → '}
+            <span style={{ color: 'var(--gs-text-secondary)' }}>{meta.tilDatoEierskifte}</span>
+            <span className="mx-2">•</span>
+            {meta.franchiseCount ?? '—'} franchiser
+            <span className="mx-2">•</span>
+            <span style={{ color: 'var(--gs-accent-lime)' }}>{meta.matches} treff</span>
+          </div>
+          {!loading && rows.length > 0 && (
+            <button
+              onClick={exportToExcel}
+              disabled={exporting}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
+              style={{
+                background: exported
+                  ? 'rgba(34, 197, 94, 0.15)'
+                  : 'var(--gs-bg-tertiary)',
+                border: `1px solid ${exported
+                  ? 'rgba(34, 197, 94, 0.3)'
+                  : 'var(--gs-border-default)'}`,
+                color: exported ? 'var(--gs-success)' : 'var(--gs-text-secondary)',
+                cursor: exporting ? 'wait' : 'pointer',
+              }}
+            >
+              <span style={{ color: exported ? 'var(--gs-success)' : 'var(--gs-accent-lime)' }}>
+                {exported ? Icons.check : Icons.fileSpreadsheet}
+              </span>
+              {exported ? 'Eksportert!' : exporting ? 'Eksporterer...' : `Eksporter ${rows.length} treff`}
+            </button>
+          )}
         </div>
       )}
 
