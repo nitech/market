@@ -15,6 +15,9 @@ interface SidebarProps {
   activeItem: string;
   onNavigate: (id: string) => void;
   onOpenSettings?: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
 // SVG Icons matching GeoSales style
@@ -87,6 +90,12 @@ const Icons = {
       <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
     </svg>
   ),
+  close: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6 6 18"/>
+      <path d="m6 6 12 12"/>
+    </svg>
+  ),
 };
 
 const navItems: NavItem[] = [
@@ -112,8 +121,24 @@ const bottomItems = (onOpenSettings?: () => void): NavItem[] => [
   },
 ];
 
-export function Sidebar({ activeItem, onNavigate, onOpenSettings }: SidebarProps) {
+export function Sidebar({ activeItem, onNavigate, onOpenSettings, isOpen = false, onClose, isMobile = false }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleNavigate = (id: string) => {
+    onNavigate(id);
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
+  const handleSettingsClick = () => {
+    if (onOpenSettings) {
+      onOpenSettings();
+    }
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
 
   const renderNavItem = (item: NavItem, isDisabled: boolean = false) => {
     const isActive = activeItem === item.id && !isDisabled;
@@ -148,10 +173,11 @@ export function Sidebar({ activeItem, onNavigate, onOpenSettings }: SidebarProps
 
     // Special case for settings with custom onClick
     if (item.onClick) {
+      const handleClick = item.id === 'settings' ? handleSettingsClick : item.onClick;
       return (
         <li key={item.id}>
           <button
-            onClick={item.onClick}
+            onClick={handleClick}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-gray-400 hover:text-gray-200 hover:bg-white/5"
             style={{ color: 'var(--gs-text-secondary)' }}
           >
@@ -171,7 +197,7 @@ export function Sidebar({ activeItem, onNavigate, onOpenSettings }: SidebarProps
     return (
       <li key={item.id}>
         <button
-          onClick={() => onNavigate(item.id)}
+          onClick={() => handleNavigate(item.id)}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             isActive
               ? 'text-white'
@@ -225,9 +251,96 @@ export function Sidebar({ activeItem, onNavigate, onOpenSettings }: SidebarProps
     );
   };
 
+  // Mobile drawer overlay
+  if (isMobile) {
+    return (
+      <>
+        {/* Backdrop */}
+        {isOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+            onClick={onClose}
+            style={{ opacity: isOpen ? 1 : 0 }}
+          />
+        )}
+        {/* Mobile Drawer */}
+        <aside
+          className={`fixed top-0 left-0 h-full z-50 lg:hidden transition-transform duration-300 ease-out ${
+            isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          style={{
+            width: '280px',
+            background: 'var(--gs-bg-secondary)',
+            boxShadow: '4px 0 24px rgba(0, 0, 0, 0.3)',
+          }}
+        >
+          {/* Header with close button */}
+          <div
+            className="flex items-center justify-between px-4 h-14 shrink-0"
+            style={{ borderBottom: '1px solid var(--gs-border-default)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="shrink-0">{Icons.logo}</div>
+              <span
+                className="font-semibold text-base tracking-tight"
+                style={{
+                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  color: 'var(--gs-text-primary)',
+                }}
+              >
+                7markets
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg transition-all duration-200 hover:bg-white/5"
+              style={{ color: 'var(--gs-text-secondary)' }}
+              aria-label="Lukk meny"
+            >
+              {Icons.close}
+            </button>
+          </div>
+
+          {/* Main Navigation */}
+          <nav className="flex-1 py-4 px-3 overflow-y-auto" style={{ height: 'calc(100vh - 120px)' }}>
+            <ul className="space-y-1">
+              {/* Active menu items */}
+              {navItems.map((item) => renderNavItem(item, false))}
+              
+              {/* Divider before disabled items */}
+              <li className="py-2">
+                <div
+                  className="h-px mx-3"
+                  style={{ background: 'var(--gs-border-default)' }}
+                />
+              </li>
+              
+              {/* Disabled menu items */}
+              {disabledNavItems.map((item) => renderNavItem(item, true))}
+            </ul>
+          </nav>
+
+          {/* Bottom Section */}
+          <div
+            className="absolute bottom-0 left-0 right-0 py-3 px-3"
+            style={{ 
+              borderTop: '1px solid var(--gs-border-default)',
+              background: 'var(--gs-bg-secondary)',
+            }}
+          >
+            <ul className="space-y-1">
+              {bottomItems(handleSettingsClick).map((item) => renderNavItem(item, item.disabled))}
+            </ul>
+          </div>
+        </aside>
+      </>
+    );
+  }
+
+  // Desktop sidebar
   return (
     <aside
-      className={`flex flex-col h-screen sticky top-0 transition-all duration-300 ease-out ${
+      className={`hidden lg:flex flex-col h-screen sticky top-0 transition-all duration-300 ease-out ${
         collapsed ? 'w-16' : 'w-[240px]'
       }`}
       style={{
@@ -289,7 +402,7 @@ export function Sidebar({ activeItem, onNavigate, onOpenSettings }: SidebarProps
         style={{ borderTop: '1px solid var(--gs-border-default)' }}
       >
         <ul className="space-y-1">
-          {bottomItems(onOpenSettings).map((item) => renderNavItem(item, item.disabled))}
+          {bottomItems(handleSettingsClick).map((item) => renderNavItem(item, item.disabled))}
         </ul>
 
         {/* Collapse Toggle */}

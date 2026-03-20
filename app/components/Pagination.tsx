@@ -32,23 +32,23 @@ export function Pagination({
 }: PaginationProps) {
   return (
     <div
-      className="flex items-center justify-between rounded-xl p-4"
+      className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 rounded-xl p-3 sm:p-4"
       style={{
         background: 'var(--gs-bg-card)',
         border: '1px solid var(--gs-border-default)',
       }}
     >
-      <div className="text-sm" style={{ color: 'var(--gs-text-secondary)' }}>
+      <div className="text-xs sm:text-sm order-2 sm:order-1" style={{ color: 'var(--gs-text-secondary)' }}>
         <span style={{ color: 'var(--gs-text-primary)' }}>Side {currentPage + 1} av {totalPages || 1}</span>
         <span className="mx-2" style={{ color: 'var(--gs-text-tertiary)' }}>•</span>
-        <span style={{ color: 'var(--gs-text-tertiary)' }}>{totalElements} totalt</span>
+        <span className="hidden sm:inline" style={{ color: 'var(--gs-text-tertiary)' }}>{totalElements} totalt</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
         <button
           onClick={onPrev}
           disabled={!hasPrev}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          className="flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
           style={{
             background: hasPrev ? 'var(--gs-bg-tertiary)' : 'transparent',
             border: '1px solid var(--gs-border-default)',
@@ -58,11 +58,11 @@ export function Pagination({
           }}
         >
           {Icons.chevronLeft}
-          Forrige
+          <span className="hidden sm:inline">Forrige</span>
         </button>
 
-        {/* Page numbers */}
-        <div className="flex items-center gap-1">
+        {/* Page numbers - Hidden on mobile, shown on sm+ */}
+        <div className="hidden sm:flex items-center gap-1">
           {Array.from({ length: Math.min(5, totalPages || 1) }, (_, i) => {
             const pageNum = i;
             const isActive = pageNum === currentPage;
@@ -97,10 +97,17 @@ export function Pagination({
           )}
         </div>
 
+        {/* Mobile page indicator */}
+        <div className="flex sm:hidden items-center px-3 py-2">
+          <span className="text-sm font-medium" style={{ color: 'var(--gs-text-primary)' }}>
+            {currentPage + 1} / {totalPages || 1}
+          </span>
+        </div>
+
         <button
           onClick={onNext}
           disabled={!hasNext}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          className="flex items-center gap-1 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
           style={{
             background: hasNext ? 'var(--gs-accent-lime)' : 'var(--gs-bg-tertiary)',
             border: hasNext ? 'none' : '1px solid var(--gs-border-default)',
@@ -109,7 +116,7 @@ export function Pagination({
             opacity: hasNext ? 1 : 0.5,
           }}
         >
-          Neste
+          <span className="hidden sm:inline">Neste</span>
           {Icons.chevronRight}
         </button>
       </div>

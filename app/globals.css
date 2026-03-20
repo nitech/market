@@ -244,3 +244,13 @@ h1, h2, h3, h4, h5, h6 {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Hide scrollbar utility - keeps scroll functionality but hides visual scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

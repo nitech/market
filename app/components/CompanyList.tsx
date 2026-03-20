@@ -106,6 +106,11 @@ const Icons = {
       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
     </svg>
   ),
+  chevronRight: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 18 6-6-6-6"/>
+    </svg>
+  ),
 };
 
 // Status Badge Component
@@ -229,6 +234,16 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
     }).format(amount);
   };
 
+  const formatCurrencyCompact = (amount?: number) => {
+    if (!amount) return '-';
+    return new Intl.NumberFormat('no-NO', {
+      style: 'currency',
+      currency: 'NOK',
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(amount);
+  };
+
   const formatDate = (date?: string) => {
     if (!date) return '-';
     try {
@@ -347,12 +362,12 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
       }}
     >
       {/* Tabs */}
-      <div className="flex items-center gap-1 p-2" style={{ borderBottom: '1px solid var(--gs-border-default)' }}>
+      <div className="flex items-center gap-1 p-2 overflow-x-auto" style={{ borderBottom: '1px solid var(--gs-border-default)' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap"
             style={{
               background: activeTab === tab.id ? 'var(--gs-bg-elevated)' : 'transparent',
               color: activeTab === tab.id ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)',
@@ -372,87 +387,185 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
         ))}
       </div>
 
-      {/* Table Header Info */}
+      {/* Table Header Info - Desktop only */}
       <div
-        className="flex items-center justify-between px-4 py-3"
+        className="hidden sm:flex items-center justify-between px-3 sm:px-4 py-3"
         style={{ borderBottom: '1px solid var(--gs-border-default)' }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Checkbox 
             checked={allSelected} 
             onChange={toggleAllSelection}
             id="select-all"
           />
-          <span className="text-sm font-medium" style={{ color: 'var(--gs-text-secondary)' }}>
+          <span className="text-xs sm:text-sm font-medium" style={{ color: 'var(--gs-text-secondary)' }}>
             {selectedRows.size > 0 ? (
               <span style={{ color: 'var(--gs-accent-lime)' }}>{selectedRows.size} valgt</span>
             ) : (
-              `${filteredCompanies.length} bedrifter`
+              <span>{filteredCompanies.length} bedrifter</span>
             )}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:bg-white/5"
+            className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:bg-white/5"
             style={{ color: 'var(--gs-text-tertiary)' }}
           >
-            {Icons.filter}
-            Filter
+            <span>{Icons.filter}</span>
+            <span>Filter</span>
           </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      {/* Mobile Card View */}
+      <div className="sm:hidden">
+        <div 
+          className="flex flex-col"
+          style={{
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {filteredCompanies.map((company) => {
+            const isSelected = selectedRows.has(company.organisasjonsnummer);
+            const isFavorite = favorites?.includes(company.organisasjonsnummer);
+
+            return (
+              <div
+                key={company.organisasjonsnummer}
+                className="transition-all duration-150"
+                style={{
+                  background: isSelected ? 'rgba(163, 230, 53, 0.08)' : 'transparent',
+                  borderBottom: '1px solid var(--gs-border-default)',
+                }}
+              >
+                <div className="p-4">
+                  {/* Top row: Checkbox, Favorite, Name */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="flex items-center gap-2 pt-1">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => toggleRowSelection(company.organisasjonsnummer)}
+                      />
+                      {onToggleFavorite && (
+                        <button
+                          onClick={() => onToggleFavorite(company.organisasjonsnummer)}
+                          className="transition-colors duration-150"
+                          style={{
+                            color: isFavorite ? 'var(--gs-accent-lime)' : 'var(--gs-text-tertiary)',
+                          }}
+                          title={isFavorite ? 'Fjern fra favoritter' : 'Legg til favoritter'}
+                        >
+                          {isFavorite ? Icons.starFilled : Icons.star}
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="text-sm font-semibold"
+                        style={{ color: 'var(--gs-text-primary)' }}
+                        title={company.navn || 'Navn ikke oppgitt'}
+                      >
+                        {company.navn || 'Navn ikke oppgitt'}
+                      </h3>
+                      {company.organisasjonsform && (
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--gs-text-tertiary)' }}>
+                          {company.organisasjonsform.beskrivelse || company.organisasjonsform.kode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Info row */}
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => copyToClipboard(company.organisasjonsnummer)}
+                        className="flex items-center gap-1 px-2 py-1 rounded font-mono"
+                        style={{
+                          background: copiedOrgnr === company.organisasjonsnummer
+                            ? 'rgba(34, 197, 94, 0.15)'
+                            : 'var(--gs-bg-tertiary)',
+                          color: copiedOrgnr === company.organisasjonsnummer
+                            ? 'var(--gs-accent-green)'
+                            : 'var(--gs-text-secondary)',
+                        }}
+                      >
+                        {copiedOrgnr === company.organisasjonsnummer ? 'Kopiert' : company.organisasjonsnummer}
+                      </button>
+                      {company.kapital?.belop && company.kapital.belop > 0 && (
+                        <span style={{ color: 'var(--gs-text-secondary)' }}>
+                          {formatCurrencyCompact(company.kapital.belop)}
+                        </span>
+                      )}
+                    </div>
+                    {onViewDetails && (
+                      <button
+                        onClick={() => onViewDetails(company.organisasjonsnummer)}
+                        className="p-2 rounded-lg transition-all duration-150"
+                        style={{ color: 'var(--gs-text-tertiary)' }}
+                      >
+                        {Icons.chevronRight}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="w-full min-w-[900px]">
           <thead>
             <tr style={{ background: 'var(--gs-bg-tertiary)' }}>
-              <th className="px-4 py-3 text-left w-10">
+              <th className="px-3 sm:px-4 py-3 text-left w-10">
                 <span className="sr-only">Velg</span>
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Bedrift
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Org.nr
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider hidden md:table-cell"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Adresse
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider hidden lg:table-cell"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Daglig leder
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Kapital
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider hidden sm:table-cell"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Registrert
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
                 style={{ color: 'var(--gs-text-tertiary)' }}
               >
                 Næring
               </th>
-              <th className="px-4 py-3 text-left w-10">
+              <th className="px-3 sm:px-4 py-3 text-left w-10">
                 <span className="sr-only">Handlinger</span>
               </th>
             </tr>
@@ -480,7 +593,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                     e.currentTarget.style.background = isSelected ? 'rgba(163, 230, 53, 0.08)' : 'transparent';
                   }}
                 >
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4">
                     <div className="flex items-center gap-2">
                       <Checkbox
                         checked={isSelected}
@@ -500,18 +613,19 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0"
                         style={{ background: 'var(--gs-bg-tertiary)' }}
                       >
                         <span style={{ color: 'var(--gs-text-secondary)' }}>{Icons.building}</span>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p
-                          className="text-sm font-medium"
+                          className="text-sm font-medium truncate max-w-[120px] sm:max-w-none"
                           style={{ color: 'var(--gs-text-primary)' }}
+                          title={company.navn || 'Navn ikke oppgitt'}
                         >
                           {company.navn || 'Navn ikke oppgitt'}
                         </p>
@@ -523,7 +637,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4">
                     <button
                       onClick={() => copyToClipboard(company.organisasjonsnummer)}
                       className="flex items-center gap-1.5 text-sm transition-colors duration-150 group"
@@ -531,7 +645,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                       title={copiedOrgnr === company.organisasjonsnummer ? 'Kopiert!' : 'Klikk for å kopiere'}
                     >
                       <span
-                        className="px-2 py-1 rounded font-mono text-xs"
+                        className="px-1.5 sm:px-2 py-1 rounded font-mono text-xs"
                         style={{
                           background: 'var(--gs-bg-tertiary)',
                           color: copiedOrgnr === company.organisasjonsnummer
@@ -549,7 +663,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                       </span>
                     </button>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4 hidden md:table-cell">
                     <p
                       className="text-sm max-w-xs truncate"
                       style={{ color: 'var(--gs-text-secondary)' }}
@@ -558,22 +672,22 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                       {getAddressString(company)}
                     </p>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4 hidden lg:table-cell">
                     <p className="text-sm" style={{ color: 'var(--gs-text-secondary)' }}>
                       {getDagligLederNavn(company.dagligLeder) || '-'}
                     </p>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4">
                     <p className="text-sm font-medium" style={{ color: 'var(--gs-text-primary)' }}>
                       {formatCurrency(company.kapital?.belop)}
                     </p>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4 hidden sm:table-cell">
                     <p className="text-sm" style={{ color: 'var(--gs-text-secondary)' }}>
                       {formatDate(company.registreringsdatoEnhetsregisteret)}
                     </p>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4">
                     {company.naeringskode1?.kode ? (
                       <StatusBadge variant="lime">
                         {company.naeringskode1.kode}
@@ -584,7 +698,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="px-3 sm:px-4 py-3 sm:py-4">
                     {onViewDetails && (
                       <button
                         onClick={() => onViewDetails(company.organisasjonsnummer)}

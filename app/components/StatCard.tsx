@@ -58,23 +58,24 @@ export function StatCard({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-5 rounded-xl transition-all duration-200 hover:scale-[1.02]"
+      className="w-full h-full text-left p-3 rounded-xl transition-all duration-200 hover:scale-[1.02]"
       style={{
         background: 'var(--gs-bg-card)',
         border: `1px solid ${theme.border}`,
       }}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-2">
         <div
-          className="p-2.5 rounded-lg"
+          className="p-1.5 rounded-lg"
           style={{ background: theme.bg }}
         >
           <span style={{ color: theme.text }}>{icon}</span>
         </div>
         <svg
-          width="16"
-          height="16"
+          width="12"
+          height="12"
+          className="hidden sm:block"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -91,13 +92,13 @@ export function StatCard({
       {/* Content */}
       <div>
         <p
-          className="text-sm font-medium mb-1"
+          className="text-xs font-medium mb-0.5"
           style={{ color: 'var(--gs-text-secondary)' }}
         >
           {title}
         </p>
         <p
-          className="text-2xl font-bold tracking-tight"
+          className="text-base font-bold tracking-tight truncate"
           style={{
             fontFamily: 'Plus Jakarta Sans, sans-serif',
             color: 'var(--gs-text-primary)',

@@ -79,6 +79,7 @@ const Icons = {
 export default function Home() {
   const [activeNavItem, setActiveNavItem] = useState('search');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const {
     companies,
@@ -115,20 +116,12 @@ export default function Home() {
   const avgCapital = totalCompanies > 0 ? totalCapital / totalCompanies : 0;
   const favoriteCount = favorites.length;
 
-  // Format date
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('no-NO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-
   // Get account label for settings modal
   const accountLabel = user?.email || user?.displayName || 'Ukjent bruker';
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--gs-bg-primary)' }}>
-      {/* Sidebar */}
+      {/* Sidebar - Desktop (always visible) + Mobile (drawer) */}
       <Sidebar
         activeItem={activeNavItem}
         onNavigate={(id) => {
@@ -136,66 +129,97 @@ export default function Home() {
           setSelectedOrgnr(null);
         }}
         onOpenSettings={() => setSettingsOpen(true)}
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        isMobile={true}
       />
+
+      {/* Desktop Sidebar - Separate instance for desktop */}
+      <div className="hidden lg:block">
+        <Sidebar
+          activeItem={activeNavItem}
+          onNavigate={(id) => {
+            setActiveNavItem(id);
+            setSelectedOrgnr(null);
+          }}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <Header onSearch={(query) => console.log('Search:', query)} />
+        <Header 
+          onSearch={(query) => console.log('Search:', query)} 
+          onMenuClick={() => setMobileMenuOpen(true)}
+          activeNavItem={activeNavItem}
+        />
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto">
           {/* Søk View */}
           {activeNavItem === 'search' && (
             <>
               <PageHeader
                 title="Bedriftssøk"
                 subtitle={`${totalFiltered || 0} bedrifter funnet`}
-                date={dateStr}
-                onShare={() => console.log('Share report')}
-                onExport={() => console.log('Export')}
               />
 
-              {/* Stats Grid */}
+              {/* Stats Grid - Horizontal scroll on mobile */}
               {!loading && companies.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                  <StatCard
-                    title="Bedrifter funnet"
-                    value={totalFiltered || 0}
-                    subtitle={`${totalCompanies} på denne siden`}
-                    icon={Icons.building}
-                    color="lime"
-                  />
-                  <StatCard
-                    title="Total aksjekapital"
-                    value={new Intl.NumberFormat('no-NO', {
-                      style: 'currency',
-                      currency: 'NOK',
-                      minimumFractionDigits: 0,
-                    }).format(totalCapital)}
-                    subtitle={`Gjennomsnitt: ${new Intl.NumberFormat('no-NO', {
-                      style: 'currency',
-                      currency: 'NOK',
-                      minimumFractionDigits: 0,
-                    }).format(avgCapital)}`}
-                    icon={Icons.dollar}
-                    color="blue"
-                  />
-                  <StatCard
-                    title="Favoritter"
-                    value={favoriteCount}
-                    subtitle="Lagret for oppfølging"
-                    icon={Icons.star}
-                    color="orange"
-                    onClick={() => console.log('Show favorites')}
-                  />
-                  <StatCard
-                    title="Aktive søk"
-                    value={companies.length > 0 ? '1' : '0'}
-                    subtitle={companies.length > 0 ? 'Søk aktiv' : 'Ingen aktive søk'}
-                    icon={Icons.funnel}
-                    color="green"
-                  />
+                <div className="relative mb-4 sm:mb-6">
+                  <div 
+                    className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 scrollbar-hide"
+                    style={{
+                      WebkitOverflowScrolling: 'touch',
+                    }}
+                  >
+                    <div className="flex-shrink-0 w-[140px] sm:w-auto">
+                      <StatCard
+                        title="Bedrifter"
+                        value={totalFiltered || 0}
+                        subtitle={`${totalCompanies} på siden`}
+                        icon={Icons.building}
+                        color="lime"
+                      />
+                    </div>
+                    <div className="flex-shrink-0 w-[140px] sm:w-auto">
+                      <StatCard
+                        title="Aksjekapital"
+                        value={new Intl.NumberFormat('no-NO', {
+                          style: 'currency',
+                          currency: 'NOK',
+                          notation: 'compact',
+                          maximumFractionDigits: 1,
+                        }).format(totalCapital)}
+                        subtitle={`Snitt: ${new Intl.NumberFormat('no-NO', {
+                          notation: 'compact',
+                          maximumFractionDigits: 1,
+                        }).format(avgCapital)}`}
+                        icon={Icons.dollar}
+                        color="blue"
+                      />
+                    </div>
+                    <div className="flex-shrink-0 w-[140px] sm:w-auto">
+                      <StatCard
+                        title="Favoritter"
+                        value={favoriteCount}
+                        subtitle="Lagret"
+                        icon={Icons.star}
+                        color="orange"
+                        onClick={() => console.log('Show favorites')}
+                      />
+                    </div>
+                    <div className="flex-shrink-0 w-[140px] sm:w-auto">
+                      <StatCard
+                        title="Aktive søk"
+                        value={companies.length > 0 ? '1' : '0'}
+                        subtitle={companies.length > 0 ? 'Aktiv' : 'Ingen'}
+                        icon={Icons.funnel}
+                        color="green"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -225,9 +249,9 @@ export default function Home() {
 
               {/* Table Actions */}
               {!loading && companies.length > 0 && (
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm" style={{ color: 'var(--gs-text-tertiary)' }}>
+                    <span className="text-xs sm:text-sm" style={{ color: 'var(--gs-text-tertiary)' }}>
                       Viser {companies.length} av {totalFiltered} bedrifter
                     </span>
                   </div>
