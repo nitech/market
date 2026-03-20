@@ -11,8 +11,10 @@ import { Statistics } from '@/app/components/Statistics';
 import { ExportButton } from '@/app/components/ExportButton';
 import { StatCard } from '@/app/components/StatCard';
 import { FranchiseEierskifteTool } from '@/app/components/FranchiseEierskifteTool';
+import { SettingsModal } from '@/app/components/SettingsModal';
 import { useCompanies } from '@/app/hooks/useCompanies';
 import { useFavorites } from '@/app/hooks/useFavorites';
+import { useAuth } from '@/app/hooks/useAuth';
 import type { SearchFilters } from '@/server/types';
 
 // Icons for stat cards
@@ -75,8 +77,8 @@ const Icons = {
 };
 
 export default function Home() {
-  const [activeNavItem, setActiveNavItem] = useState('overview');
-  const [activeTab, setActiveTab] = useState<'search' | 'franchise'>('search');
+  const [activeNavItem, setActiveNavItem] = useState('search');
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const {
     companies,
@@ -92,6 +94,7 @@ export default function Home() {
   } = useCompanies();
 
   const { favorites, toggleFavorite } = useFavorites();
+  const { user } = useAuth();
   const [selectedOrgnr, setSelectedOrgnr] = useState<string | null>(null);
 
   const handleSearch = (filters: SearchFilters) => {
@@ -103,11 +106,6 @@ export default function Home() {
   };
 
   const handleCloseDetails = () => {
-    setSelectedOrgnr(null);
-  };
-
-  const switchTab = (tab: 'search' | 'franchise') => {
-    setActiveTab(tab);
     setSelectedOrgnr(null);
   };
 
@@ -125,6 +123,9 @@ export default function Home() {
     year: 'numeric',
   });
 
+  // Get account label for settings modal
+  const accountLabel = user?.email || user?.displayName || 'Ukjent bruker';
+
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--gs-bg-primary)' }}>
       {/* Sidebar */}
@@ -132,50 +133,21 @@ export default function Home() {
         activeItem={activeNavItem}
         onNavigate={(id) => {
           setActiveNavItem(id);
-          if (id === 'overview') switchTab('search');
+          setSelectedOrgnr(null);
         }}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <Header
-          userName="Alex Fox"
-          userRole="CEO, admin"
-          onSearch={(query) => console.log('Search:', query)}
-        />
+        <Header onSearch={(query) => console.log('Search:', query)} />
 
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-auto">
-          {/* Tab Switcher (Search / Franchise) */}
-          <div className="flex gap-1 p-1 rounded-lg mb-6 w-fit" style={{ background: 'var(--gs-bg-tertiary)' }}>
-            <button
-              onClick={() => switchTab('search')}
-              className="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200"
-              style={{
-                background: activeTab === 'search' ? 'var(--gs-bg-elevated)' : 'transparent',
-                color: activeTab === 'search' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)',
-                boxShadow: activeTab === 'search' ? 'var(--gs-shadow-sm)' : 'none',
-              }}
-            >
-              Søk
-            </button>
-            <button
-              onClick={() => switchTab('franchise')}
-              className="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200"
-              style={{
-                background: activeTab === 'franchise' ? 'var(--gs-bg-elevated)' : 'transparent',
-                color: activeTab === 'franchise' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)',
-                boxShadow: activeTab === 'franchise' ? 'var(--gs-shadow-sm)' : 'none',
-              }}
-            >
-              Franchise
-            </button>
-          </div>
-
-          {activeTab === 'search' && (
+          {/* Søk View */}
+          {activeNavItem === 'search' && (
             <>
-              {/* Page Header */}
               <PageHeader
                 title="Bedriftssøk"
                 subtitle={`${totalFiltered || 0} bedrifter funnet`}
@@ -251,6 +223,18 @@ export default function Home() {
                 <Statistics companies={companies} totalFiltered={totalFiltered} />
               )}
 
+              {/* Table Actions */}
+              {!loading && companies.length > 0 && (
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm" style={{ color: 'var(--gs-text-tertiary)' }}>
+                      Viser {companies.length} av {totalFiltered} bedrifter
+                    </span>
+                  </div>
+                  <ExportButton companies={companies} variant="button" />
+                </div>
+              )}
+
               {/* Company List */}
               <CompanyList
                 companies={companies}
@@ -282,7 +266,8 @@ export default function Home() {
             </>
           )}
 
-          {activeTab === 'franchise' && (
+          {/* Franchise View */}
+          {activeNavItem === 'franchise' && (
             <>
               <PageHeader
                 title="Franchise Eierskifte"
@@ -291,8 +276,103 @@ export default function Home() {
               <FranchiseEierskifteTool />
             </>
           )}
+
+          {/* Other menu items - Placeholder */}
+          {activeNavItem === 'territory' && (
+            <>
+              <PageHeader
+                title="Territorium"
+                subtitle="Oversikt over geografiske områder"
+              />
+              <div
+                className="rounded-xl p-12 flex flex-col items-center justify-center"
+                style={{
+                  background: 'var(--gs-bg-card)',
+                  border: '1px solid var(--gs-border-default)',
+                }}
+              >
+                <div style={{ color: 'var(--gs-text-tertiary)' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" x2="22" y1="12" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </div>
+                <p className="mt-4 text-base font-medium" style={{ color: 'var(--gs-text-secondary)' }}>
+                  Territorium-funksjonen kommer snart
+                </p>
+              </div>
+            </>
+          )}
+
+          {activeNavItem === 'network' && (
+            <>
+              <PageHeader
+                title="Nettverk"
+                subtitle="Ditt profesjonelle nettverk"
+              />
+              <div
+                className="rounded-xl p-12 flex flex-col items-center justify-center"
+                style={{
+                  background: 'var(--gs-bg-card)',
+                  border: '1px solid var(--gs-border-default)',
+                }}
+              >
+                <div style={{ color: 'var(--gs-text-tertiary)' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3"/>
+                    <circle cx="6" cy="12" r="3"/>
+                    <circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+                    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+                  </svg>
+                </div>
+                <p className="mt-4 text-base font-medium" style={{ color: 'var(--gs-text-secondary)' }}>
+                  Nettverk-funksjonen kommer snart
+                </p>
+              </div>
+            </>
+          )}
+
+          {activeNavItem === 'team' && (
+            <>
+              <PageHeader
+                title="Team"
+                subtitle="Administrer teammedlemmer"
+              />
+              <div
+                className="rounded-xl p-12 flex flex-col items-center justify-center"
+                style={{
+                  background: 'var(--gs-bg-card)',
+                  border: '1px solid var(--gs-border-default)',
+                }}
+              >
+                <div style={{ color: 'var(--gs-text-tertiary)' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <p className="mt-4 text-base font-medium" style={{ color: 'var(--gs-text-secondary)' }}>
+                  Team-funksjonen kommer snart
+                </p>
+              </div>
+            </>
+          )}
         </main>
       </div>
+
+      {/* Settings Modal */}
+      {user && (
+        <SettingsModal
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          user={user}
+          accountLabel={accountLabel}
+        />
+      )}
     </div>
   );
 }

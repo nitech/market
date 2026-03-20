@@ -26,12 +26,6 @@ const Icons = {
       <path d="m6 6 12 12"/>
     </svg>
   ),
-  plus: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14"/>
-      <path d="M12 5v14"/>
-    </svg>
-  ),
   chevronDown: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m6 9 6 6 6-6"/>
@@ -69,6 +63,11 @@ const Icons = {
       <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
     </svg>
   ),
+  filterActive: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  ),
 };
 
 const ORGANISASJONSFORMER = [
@@ -86,93 +85,25 @@ const ALLE_NAERINGSKODER = [
   { code: '01', name: 'Jordbruk og tjenester tilknyttet jordbruk, jakt og viltstell' },
   { code: '02', name: 'Skogbruk og tjenester tilknyttet skogbruk' },
   { code: '03', name: 'Fiske, fangst og akvakultur' },
-  { code: '05', name: 'Bryting av steinkull og brunkull' },
-  { code: '06', name: 'Utvinning av råolje og naturgass' },
-  { code: '07', name: 'Bryting av metallholdig malm' },
-  { code: '08', name: 'Bryting og bergverksdrift ellers' },
-  { code: '09', name: 'Tjenester tilknyttet bergverksdrift og utvinning' },
-  { code: '10', name: 'Produksjon av nærings- og nytelsesmidler' },
-  { code: '11', name: 'Produksjon av drikkevarer' },
-  { code: '12', name: 'Produksjon av tobakksvarer' },
-  { code: '13', name: 'Produksjon av tekstiler' },
-  { code: '14', name: 'Produksjon av klær' },
-  { code: '15', name: 'Produksjon av lær og andre relaterte produkter' },
-  { code: '16', name: 'Produksjon av trelast og varer av tre, kork, strå og flettematerialer, unntatt møbler' },
-  { code: '17', name: 'Produksjon av papir og papirvarer' },
-  { code: '18', name: 'Trykking og reproduksjon av innspilte opptak' },
-  { code: '19', name: 'Produksjon av kullprodukter og raffinerte petroleumsprodukter' },
-  { code: '20', name: 'Produksjon av kjemikalier og kjemiske produkter' },
-  { code: '21', name: 'Produksjon av farmasøytiske råvarer og preparater' },
-  { code: '22', name: 'Produksjon av gummi- og plastprodukter' },
-  { code: '23', name: 'Produksjon av andre ikke-metalliske mineralprodukter' },
-  { code: '24', name: 'Produksjon av metaller' },
-  { code: '25', name: 'Produksjon av metallvarer, unntatt maskiner og utstyr' },
-  { code: '26', name: 'Produksjon av datamaskiner og elektroniske og optiske produkter' },
-  { code: '27', name: 'Produksjon av elektrisk utstyr' },
-  { code: '28', name: 'Produksjon av maskiner og utstyr ikke nevnt annet sted' },
-  { code: '29', name: 'Produksjon av motorvogner og tilhengere' },
-  { code: '30', name: 'Produksjon av andre transportmidler' },
-  { code: '31', name: 'Produksjon av møbler' },
-  { code: '32', name: 'Annen industriproduksjon' },
-  { code: '33', name: 'Reparasjon, vedlikehold og installasjon av maskiner og utstyr' },
-  { code: '35', name: 'Forsyning av elektrisitet, gass, damp og kjøleluft' },
-  { code: '36', name: 'Uttak fra kilde, rensing og distribusjon av vann' },
-  { code: '37', name: 'Oppsamling og behandling av avløpsvann' },
-  { code: '38', name: 'Innsamling, gjenvinning og behandling av avfall' },
-  { code: '39', name: 'Miljøutbedring, opprydding og lignende aktivitet' },
-  { code: '41', name: 'Oppføring av bygninger' },
-  { code: '42', name: 'Anleggsvirksomhet' },
-  { code: '43', name: 'Spesialisert bygge- og anleggsvirksomhet' },
-  { code: '46', name: 'Engroshandel' },
   { code: '47', name: 'Detaljhandel' },
-  { code: '49', name: 'Landtransport og rørtransport' },
-  { code: '50', name: 'Sjøfart' },
-  { code: '51', name: 'Lufttransport' },
-  { code: '52', name: 'Lagring og andre tjenester tilknyttet transport' },
-  { code: '53', name: 'Post- og budtjenester' },
-  { code: '55', name: 'Overnattingsvirksomhet' },
   { code: '56', name: 'Serveringsvirksomhet' },
-  { code: '58', name: 'Utgivelsesvirksomhet' },
-  { code: '59', name: 'Film-, video- og fjernsynsprogramproduksjon, utgivelse av musikk- og lydopptak' },
-  { code: '60', name: 'Radio- og fjernsynsprogramvirksomhet, kringkasting, nyhetsbyråer og distribuering av annet innhold' },
-  { code: '61', name: 'Telekommunikasjon' },
   { code: '62', name: 'Dataprogrammering, konsulentvirksomhet og andre tjenester tilknyttet informasjonsteknologi' },
-  { code: '63', name: 'Datainfrastruktur, -behandling, -lagring og andre informasjonstjenester' },
-  { code: '64', name: 'Finansieringsvirksomhet og kollektive investeringsfond' },
-  { code: '65', name: 'Forsikringsvirksomhet, unntatt trygdeordninger underlagt offentlig forvaltning' },
-  { code: '66', name: 'Tjenester tilknyttet finansiell virksomhet' },
-  { code: '68', name: 'Eiendomsvirksomhet' },
-  { code: '69', name: 'Juridisk og regnskapsmessig tjenesteyting' },
-  { code: '70', name: 'Hovedkontortjenester og administrativ rådgivning' },
-  { code: '71', name: 'Arkitektvirksomhet og teknisk konsulentvirksomhet, og teknisk prøving og analyse' },
-  { code: '72', name: 'Forskning og eksperimentell utvikling' },
-  { code: '73', name: 'Annonse- og reklamevirksomhet, markedsundersøkelser og PR og kommunikasjonstjenester' },
-  { code: '74', name: 'Annen faglig, vitenskapelig og teknisk virksomhet' },
-  { code: '75', name: 'Veterinærtjenester' },
-  { code: '77', name: 'Utleie- og leasingvirksomhet' },
-  { code: '78', name: 'Arbeidskrafttjenester' },
-  { code: '79', name: 'Reisebyrå- og reisearrangørvirksomhet og tilknyttede tjenester' },
-  { code: '80', name: 'Etterforsknings- og vakttjenester' },
-  { code: '81', name: 'Tjenester tilknyttet eiendomsdrift og beplantning av hager og parkanlegg' },
-  { code: '82', name: 'Annen forretningsmessig tjenesteyting' },
-  { code: '84', name: 'Offentlig administrasjon og forsvar, og trygdeordninger underlagt offentlig forvaltning' },
-  { code: '85', name: 'Undervisning' },
-  { code: '86', name: 'Helsetjenester' },
-  { code: '87', name: 'Helse- og omsorgstjenester i institusjoner og andre botilbud' },
-  { code: '88', name: 'Omsorgs- og sosialtjenester uten botilbud' },
-  { code: '90', name: 'Kunstnerisk virksomhet og underholdningsvirksomhet' },
-  { code: '91', name: 'Drift av biblioteker, arkiver, museer og annen kulturvirksomhet' },
-  { code: '92', name: 'Lotteri- og gamblingvirksomhet' },
-  { code: '93', name: 'Sports-, fornøyelses- og fritidsaktiviteter' },
-  { code: '94', name: 'Aktiviteter i medlemsorganisasjoner' },
-  { code: '95', name: 'Reparasjon og vedlikehold av datamaskiner, husholdningsvarer, varer til personlig bruk og motorvogner og motorsykler' },
   { code: '96', name: 'Personlig tjenesteyting' },
-  { code: '97', name: 'Lønnet arbeid i private husholdninger' },
-  { code: '98', name: 'Annen vareproduksjon og tjenesteyting i private husholdninger til eget bruk' },
-  { code: '99', name: 'Aktiviteter i internasjonale organisasjoner og organer' },
+  { code: '43', name: 'Spesialisert bygge- og anleggsvirksomhet' },
 ];
 
+const STORAGE_KEY = '7markets-filters-expanded';
+
 export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps) {
+  // Load expanded state from localStorage
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved === 'true';
+    }
+    return false;
+  });
+
   const getDefaultDates = () => {
     const today = new Date();
     const thirtyDaysAgo = new Date(today);
@@ -184,7 +115,6 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
   };
 
   const defaultDates = getDefaultDates();
-
   const isoToNorwegian = (isoDate: string): string => {
     if (!isoDate) return '';
     const [year, month, day] = isoDate.split('-');
@@ -208,17 +138,26 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
   const [naeringskodeSearch, setNaeringskodeSearch] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [expandedSections, setExpandedSections] = useState({
-    basic: true,
-    dates: true,
-    form: false,
-    naering: true,
-  });
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const [inkluderNaeringskoder, setInkluderNaeringskoder] = useState<string[]>([
     '47', '56', '96', '43', '62'
   ]);
+
+  // Check if any advanced filters are active
+  const hasActiveFilters = 
+    minAksjekapital !== '50000' ||
+    fraDato !== isoToNorwegian(defaultDates.fra) ||
+    tilDato !== isoToNorwegian(defaultDates.til) ||
+    organisasjonsform.length > 0 ||
+    inkluderNaeringskoder.length > 0;
+
+  // Save expanded state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, expanded.toString());
+    }
+  }, [expanded]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -312,8 +251,8 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
     );
   };
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  const toggleExpanded = () => {
+    setExpanded(prev => !prev);
   };
 
   return (
@@ -324,151 +263,117 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
         border: '1px solid var(--gs-border-default)',
       }}
     >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: '1px solid var(--gs-border-default)' }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="p-2 rounded-lg"
-            style={{ background: 'rgba(163, 230, 53, 0.1)' }}
-          >
-            <span style={{ color: 'var(--gs-accent-lime)' }}>{Icons.filter}</span>
+      {/* Compact Search Bar */}
+      <div className="p-4">
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          {/* Search Input */}
+          <div className="flex-1 relative">
+            <span
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: 'var(--gs-text-tertiary)' }}
+            >
+              {Icons.search}
+            </span>
+            <input
+              type="text"
+              placeholder="Søk på bedriftsnavn..."
+              value={navn}
+              onChange={(e) => setNavn(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg text-sm transition-all duration-200 focus:outline-none"
+              style={{
+                background: 'var(--gs-bg-tertiary)',
+                border: '1px solid var(--gs-border-default)',
+                color: 'var(--gs-text-primary)',
+              }}
+            />
           </div>
-          <h3
-            className="text-base font-semibold"
+
+          {/* Filter Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleExpanded}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
             style={{
-              fontFamily: 'Plus Jakarta Sans, sans-serif',
-              color: 'var(--gs-text-primary)',
+              background: expanded || hasActiveFilters
+                ? 'rgba(163, 230, 53, 0.15)'
+                : 'var(--gs-bg-tertiary)',
+              border: `1px solid ${expanded || hasActiveFilters
+                ? 'rgba(163, 230, 53, 0.3)'
+                : 'var(--gs-border-default)'}`,
+              color: expanded || hasActiveFilters
+                ? 'var(--gs-accent-lime)'
+                : 'var(--gs-text-secondary)',
+            }}
+            title={expanded ? 'Skjul filtre' : 'Vis filtre'}
+          >
+            {hasActiveFilters && !expanded ? Icons.filterActive : Icons.filter}
+            <span className="hidden sm:inline">
+              {expanded ? 'Skjul' : 'Filter'}
+            </span>
+            {hasActiveFilters && (
+              <span
+                className="ml-1 px-1.5 py-0.5 rounded text-xs"
+                style={{
+                  background: 'var(--gs-accent-lime)',
+                  color: 'var(--gs-bg-primary)',
+                }}
+              >
+                {organisasjonsform.length + inkluderNaeringskoder.length + (minAksjekapital !== '50000' ? 1 : 0)}
+              </span>
+            )}
+          </button>
+
+          {/* Search Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
+            style={{
+              background: loading ? 'var(--gs-bg-tertiary)' : 'var(--gs-accent-lime)',
+              color: loading ? 'var(--gs-text-tertiary)' : 'var(--gs-bg-primary)',
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
             }}
           >
-            Søkefiltre
-          </h3>
-        </div>
-        <button
-          type="submit"
-          form="search-form"
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-          style={{
-            background: loading ? 'var(--gs-bg-tertiary)' : 'var(--gs-accent-lime)',
-            color: loading ? 'var(--gs-text-tertiary)' : 'var(--gs-bg-primary)',
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? (
-            <>
-              {Icons.loader}
-              Søker...
-            </>
-          ) : (
-            <>
-              {Icons.search}
-              Søk
-            </>
-          )}
-        </button>
+            {loading ? Icons.loader : Icons.search}
+            <span className="hidden sm:inline">Søk</span>
+          </button>
+        </form>
       </div>
 
-      <form id="search-form" onSubmit={handleSubmit} className="p-5">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-5">
-            {/* Bedriftsnavn */}
-            <div>
-              <label
-                className="flex items-center gap-2 text-sm font-medium mb-2"
-                style={{ color: 'var(--gs-text-secondary)' }}
-              >
-                {Icons.building}
-                Bedriftsnavn
-              </label>
-              <input
-                type="text"
-                value={navn}
-                onChange={(e) => setNavn(e.target.value)}
-                placeholder="Søk på navn..."
-                className="w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 focus:outline-none"
-                style={{
-                  background: 'var(--gs-bg-tertiary)',
-                  border: '1px solid var(--gs-border-default)',
-                  color: 'var(--gs-text-primary)',
-                }}
-              />
-            </div>
-
-            {/* Minimum aksjekapital */}
-            <div>
-              <label
-                className="flex items-center gap-2 text-sm font-medium mb-2"
-                style={{ color: 'var(--gs-text-secondary)' }}
-              >
-                {Icons.money}
-                Minimum aksjekapital
-              </label>
-              <div className="relative">
-                <span
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-                  style={{ color: 'var(--gs-text-tertiary)' }}
+      {/* Expanded Filters */}
+      {expanded && (
+        <div
+          className="px-4 pb-4"
+          style={{ borderTop: '1px solid var(--gs-border-default)' }}
+        >
+          <div className="pt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-5">
+              {/* Minimum aksjekapital */}
+              <div>
+                <label
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
+                  style={{ color: 'var(--gs-text-secondary)' }}
                 >
-                  kr
-                </span>
-                <input
-                  type="number"
-                  value={minAksjekapital}
-                  onChange={(e) => setMinAksjekapital(e.target.value)}
-                  min="0"
-                  step="1000"
-                  placeholder="50000"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm transition-all duration-200 focus:outline-none"
-                  style={{
-                    background: 'var(--gs-bg-tertiary)',
-                    border: '1px solid var(--gs-border-default)',
-                    color: 'var(--gs-text-primary)',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Datoer */}
-            <div>
-              <label
-                className="flex items-center gap-2 text-sm font-medium mb-2"
-                style={{ color: 'var(--gs-text-secondary)' }}
-              >
-                {Icons.calendar}
-                Registreringsperiode
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs block mb-1" style={{ color: 'var(--gs-text-tertiary)' }}>
-                    Fra dato
-                  </label>
+                  {Icons.money}
+                  Minimum aksjekapital
+                </label>
+                <div className="relative">
+                  <span
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+                    style={{ color: 'var(--gs-text-tertiary)' }}
+                  >
+                    kr
+                  </span>
                   <input
-                    type="text"
-                    value={fraDato}
-                    onChange={(e) => setFraDato(e.target.value)}
-                    placeholder="dd.mm.yyyy"
-                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 focus:outline-none"
-                    style={{
-                      background: 'var(--gs-bg-tertiary)',
-                      border: '1px solid var(--gs-border-default)',
-                      color: 'var(--gs-text-primary)',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs block mb-1" style={{ color: 'var(--gs-text-tertiary)' }}>
-                    Til dato
-                  </label>
-                  <input
-                    type="text"
-                    value={tilDato}
-                    onChange={(e) => setTilDato(e.target.value)}
-                    placeholder="dd.mm.yyyy"
-                    className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 focus:outline-none"
+                    type="number"
+                    value={minAksjekapital}
+                    onChange={(e) => setMinAksjekapital(e.target.value)}
+                    min="0"
+                    step="1000"
+                    placeholder="50000"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm transition-all duration-200 focus:outline-none"
                     style={{
                       background: 'var(--gs-bg-tertiary)',
                       border: '1px solid var(--gs-border-default)',
@@ -477,115 +382,156 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
                   />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Right Column */}
-          <div className="space-y-5">
-            {/* Næringskoder */}
-            <div>
-              <label
-                className="flex items-center gap-2 text-sm font-medium mb-2"
-                style={{ color: 'var(--gs-text-secondary)' }}
-              >
-                {Icons.tag}
-                Næringskoder
-                <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--gs-bg-tertiary)', color: 'var(--gs-text-tertiary)' }}>
-                  {inkluderNaeringskoder.length}
-                </span>
-              </label>
-              <div className="relative" ref={searchContainerRef}>
-                <div
-                  className="flex min-h-[44px] flex-wrap gap-2 rounded-lg p-2.5 transition-all duration-200"
-                  style={{
-                    background: 'var(--gs-bg-tertiary)',
-                    border: '1px solid var(--gs-border-default)',
-                  }}
+              {/* Datoer */}
+              <div>
+                <label
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
+                  style={{ color: 'var(--gs-text-secondary)' }}
                 >
-                  {inkluderNaeringskoder.map((code) => (
-                    <span
-                      key={code}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium"
+                  {Icons.calendar}
+                  Registreringsperiode
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs block mb-1" style={{ color: 'var(--gs-text-tertiary)' }}>
+                      Fra dato
+                    </label>
+                    <input
+                      type="text"
+                      value={fraDato}
+                      onChange={(e) => setFraDato(e.target.value)}
+                      placeholder="dd.mm.yyyy"
+                      className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 focus:outline-none"
                       style={{
-                        background: 'rgba(163, 230, 53, 0.15)',
-                        color: 'var(--gs-accent-lime)',
-                        border: '1px solid rgba(163, 230, 53, 0.3)',
+                        background: 'var(--gs-bg-tertiary)',
+                        border: '1px solid var(--gs-border-default)',
+                        color: 'var(--gs-text-primary)',
                       }}
-                    >
-                      <span>{getNaeringskodeLabel(code)}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveNaeringskode(code)}
-                        className="hover:opacity-70 transition-opacity"
-                        title="Fjern"
-                      >
-                        {Icons.x}
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    type="text"
-                    value={naeringskodeSearch}
-                    onChange={(e) => {
-                      setNaeringskodeSearch(e.target.value);
-                      setShowSearchResults(e.target.value.trim().length > 0);
-                      setSelectedIndex(-1);
-                    }}
-                    onKeyDown={handleSearchKeyDown}
-                    onFocus={() => {
-                      if (naeringskodeSearch.trim().length > 0) {
-                        setShowSearchResults(true);
-                      }
-                    }}
-                    className="min-w-[120px] flex-1 bg-transparent text-sm outline-none"
-                    style={{ color: 'var(--gs-text-primary)' }}
-                    placeholder={inkluderNaeringskoder.length === 0 ? 'Søk på kode eller navn...' : ''}
-                  />
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs block mb-1" style={{ color: 'var(--gs-text-tertiary)' }}>
+                      Til dato
+                    </label>
+                    <input
+                      type="text"
+                      value={tilDato}
+                      onChange={(e) => setTilDato(e.target.value)}
+                      placeholder="dd.mm.yyyy"
+                      className="w-full px-3 py-2 rounded-lg text-sm transition-all duration-200 focus:outline-none"
+                      style={{
+                        background: 'var(--gs-bg-tertiary)',
+                        border: '1px solid var(--gs-border-default)',
+                        color: 'var(--gs-text-primary)',
+                      }}
+                    />
+                  </div>
                 </div>
+              </div>
+            </div>
 
-                {/* Search results dropdown */}
-                {showSearchResults && filteredNaeringskoder.length > 0 && (
+            {/* Right Column */}
+            <div className="space-y-5">
+              {/* Næringskoder */}
+              <div>
+                <label
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
+                  style={{ color: 'var(--gs-text-secondary)' }}
+                >
+                  {Icons.tag}
+                  Næringskoder
+                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--gs-bg-tertiary)', color: 'var(--gs-text-tertiary)' }}>
+                    {inkluderNaeringskoder.length}
+                  </span>
+                </label>
+                <div className="relative" ref={searchContainerRef}>
                   <div
-                    className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg shadow-lg"
+                    className="flex min-h-[44px] flex-wrap gap-2 rounded-lg p-2.5 transition-all duration-200"
                     style={{
-                      background: 'var(--gs-bg-elevated)',
+                      background: 'var(--gs-bg-tertiary)',
                       border: '1px solid var(--gs-border-default)',
                     }}
                   >
-                    {filteredNaeringskoder.map((nk, index) => (
-                      <button
-                        key={nk.code}
-                        type="button"
-                        onClick={() => handleAddNaeringskode(nk.code)}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                        className="w-full px-4 py-2.5 text-left transition-colors duration-150"
+                    {inkluderNaeringskoder.map((code) => (
+                      <span
+                        key={code}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium"
                         style={{
-                          background: index === selectedIndex ? 'var(--gs-bg-tertiary)' : 'transparent',
-                          borderLeft: index === selectedIndex ? '2px solid var(--gs-accent-lime)' : '2px solid transparent',
+                          background: 'rgba(163, 230, 53, 0.15)',
+                          color: 'var(--gs-accent-lime)',
+                          border: '1px solid rgba(163, 230, 53, 0.3)',
                         }}
                       >
-                        <span className="text-sm font-semibold" style={{ color: 'var(--gs-text-primary)' }}>
-                          {nk.code}
-                        </span>
-                        <span className="ml-2 text-sm" style={{ color: 'var(--gs-text-tertiary)' }}>
-                          – {nk.name}
-                        </span>
-                      </button>
+                        <span>{getNaeringskodeLabel(code)}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNaeringskode(code)}
+                          className="hover:opacity-70 transition-opacity"
+                          title="Fjern"
+                        >
+                          {Icons.x}
+                        </button>
+                      </span>
                     ))}
+                    <input
+                      type="text"
+                      value={naeringskodeSearch}
+                      onChange={(e) => {
+                        setNaeringskodeSearch(e.target.value);
+                        setShowSearchResults(e.target.value.trim().length > 0);
+                        setSelectedIndex(-1);
+                      }}
+                      onKeyDown={handleSearchKeyDown}
+                      onFocus={() => {
+                        if (naeringskodeSearch.trim().length > 0) {
+                          setShowSearchResults(true);
+                        }
+                      }}
+                      className="min-w-[120px] flex-1 bg-transparent text-sm outline-none"
+                      style={{ color: 'var(--gs-text-primary)' }}
+                      placeholder={inkluderNaeringskoder.length === 0 ? 'Søk på kode eller navn...' : ''}
+                    />
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Organisasjonsform */}
-            <div>
-              <button
-                type="button"
-                onClick={() => toggleSection('form')}
-                className="flex items-center justify-between w-full mb-3"
-              >
-                <span
-                  className="flex items-center gap-2 text-sm font-medium"
+                  {/* Search results dropdown */}
+                  {showSearchResults && filteredNaeringskoder.length > 0 && (
+                    <div
+                      className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg shadow-lg"
+                      style={{
+                        background: 'var(--gs-bg-elevated)',
+                        border: '1px solid var(--gs-border-default)',
+                      }}
+                    >
+                      {filteredNaeringskoder.map((nk, index) => (
+                        <button
+                          key={nk.code}
+                          type="button"
+                          onClick={() => handleAddNaeringskode(nk.code)}
+                          onMouseEnter={() => setSelectedIndex(index)}
+                          className="w-full px-4 py-2.5 text-left transition-colors duration-150"
+                          style={{
+                            background: index === selectedIndex ? 'var(--gs-bg-tertiary)' : 'transparent',
+                            borderLeft: index === selectedIndex ? '2px solid var(--gs-accent-lime)' : '2px solid transparent',
+                          }}
+                        >
+                          <span className="text-sm font-semibold" style={{ color: 'var(--gs-text-primary)' }}>
+                            {nk.code}
+                          </span>
+                          <span className="ml-2 text-sm" style={{ color: 'var(--gs-text-tertiary)' }}>
+                            – {nk.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Organisasjonsform */}
+              <div>
+                <label
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
                   style={{ color: 'var(--gs-text-secondary)' }}
                 >
                   {Icons.building}
@@ -593,16 +539,7 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
                   <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--gs-bg-tertiary)', color: 'var(--gs-text-tertiary)' }}>
                     {organisasjonsform.length}
                   </span>
-                </span>
-                <span
-                  className={`transition-transform duration-200 ${expandedSections.form ? 'rotate-180' : ''}`}
-                  style={{ color: 'var(--gs-text-tertiary)' }}
-                >
-                  {Icons.chevronDown}
-                </span>
-              </button>
-
-              {expandedSections.form && (
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   {ORGANISASJONSFORMER.map((form) => (
                     <label
@@ -622,11 +559,11 @@ export function SearchFiltersComponent({ onSearch, loading }: SearchFiltersProps
                     </label>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      </form>
+      )}
     </div>
   );
 }

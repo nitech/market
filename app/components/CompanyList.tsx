@@ -175,19 +175,40 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
     { id: 'favorites', label: 'Favoritter', count: favorites?.length || 0 },
   ];
 
-  const dedupedCompanies = useMemo<CompanyWithRoles[]>(() => {
+  // Empty state message based on active tab
+  const getEmptyMessage = () => {
+    if (activeTab === 'favorites') {
+      return {
+        title: 'Ingen favoritter',
+        subtitle: 'Legg til bedrifter i favoritter ved å klikke på stjernen',
+      };
+    }
+    return {
+      title: 'Ingen bedrifter funnet',
+      subtitle: 'Prøv å justere søkekriteriene dine',
+    };
+  };
+
+  // Filter companies based on active tab
+  const filteredCompanies = useMemo<CompanyWithRoles[]>(() => {
     const seen = new Set<string>();
     const result: CompanyWithRoles[] = [];
 
     for (const company of companies) {
       const id = company.organisasjonsnummer;
       if (seen.has(id)) continue;
+      
+      // Apply tab filter
+      if (activeTab === 'favorites') {
+        if (!favorites?.includes(id)) continue;
+      }
+      
       seen.add(id);
       result.push(company);
     }
 
     return result;
-  }, [companies]);
+  }, [companies, activeTab, favorites]);
 
   const copyToClipboard = async (orgnr: string) => {
     try {
@@ -262,10 +283,10 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
   };
 
   const toggleAllSelection = () => {
-    if (selectedRows.size === dedupedCompanies.length) {
+    if (selectedRows.size === filteredCompanies.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(dedupedCompanies.map(c => c.organisasjonsnummer)));
+      setSelectedRows(new Set(filteredCompanies.map(c => c.organisasjonsnummer)));
     }
   };
 
@@ -283,30 +304,39 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
     );
   }
 
-  if (dedupedCompanies.length === 0) {
+  if (filteredCompanies.length === 0) {
+    const emptyMessage = getEmptyMessage();
     return (
       <div
         className="flex flex-col items-center justify-center py-20 rounded-xl"
         style={{ background: 'var(--gs-bg-card)', border: '1px solid var(--gs-border-default)' }}
       >
-        <div style={{ color: 'var(--gs-text-tertiary)' }}>{Icons.search}</div>
+        <div style={{ color: 'var(--gs-text-tertiary)' }}>
+          {activeTab === 'favorites' ? (
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          ) : (
+            Icons.search
+          )}
+        </div>
         <p
           className="mt-4 text-base font-medium"
           style={{ color: 'var(--gs-text-secondary)' }}
         >
-          Ingen bedrifter funnet
+          {emptyMessage.title}
         </p>
         <p
           className="mt-1 text-sm"
           style={{ color: 'var(--gs-text-tertiary)' }}
         >
-          Prøv å justere søkekriteriene dine
+          {emptyMessage.subtitle}
         </p>
       </div>
     );
   }
 
-  const allSelected = selectedRows.size === dedupedCompanies.length && dedupedCompanies.length > 0;
+  const allSelected = selectedRows.size === filteredCompanies.length && filteredCompanies.length > 0;
 
   return (
     <div
@@ -357,7 +387,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
             {selectedRows.size > 0 ? (
               <span style={{ color: 'var(--gs-accent-lime)' }}>{selectedRows.size} valgt</span>
             ) : (
-              `${dedupedCompanies.length} bedrifter`
+              `${filteredCompanies.length} bedrifter`
             )}
           </span>
         </div>
@@ -428,7 +458,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
             </tr>
           </thead>
           <tbody>
-            {dedupedCompanies.map((company) => {
+            {filteredCompanies.map((company) => {
               const isSelected = selectedRows.has(company.organisasjonsnummer);
               const isFavorite = favorites?.includes(company.organisasjonsnummer);
 

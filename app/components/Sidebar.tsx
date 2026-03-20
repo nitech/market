@@ -7,25 +7,29 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   badge?: number;
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
 interface SidebarProps {
   activeItem: string;
   onNavigate: (id: string) => void;
+  onOpenSettings?: () => void;
 }
 
 // SVG Icons matching GeoSales style
 const Icons = {
-  home: (
+  search: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-      <polyline points="9 22 9 12 15 12 15 22"/>
+      <circle cx="11" cy="11" r="8"/>
+      <path d="m21 21-4.3-4.3"/>
     </svg>
   ),
-  fileText: (
+  franchise: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-      <polyline points="14 2 14 8 20 8"/>
+      <path d="M3 21h18"/>
+      <path d="M5 21V7l8-4 8 4v14"/>
+      <path d="M9 21v-9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v9"/>
     </svg>
   ),
   globe: (
@@ -42,21 +46,6 @@ const Icons = {
       <circle cx="18" cy="19" r="3"/>
       <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
       <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
-    </svg>
-  ),
-  shoppingCart: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="8" cy="21" r="1"/>
-      <circle cx="19" cy="21" r="1"/>
-      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-    </svg>
-  ),
-  truck: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1" y="3" width="15" height="13"/>
-      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-      <circle cx="5.5" cy="18.5" r="2.5"/>
-      <circle cx="18.5" cy="18.5" r="2.5"/>
     </svg>
   ),
   users: (
@@ -92,25 +81,149 @@ const Icons = {
       </defs>
     </svg>
   ),
+  lock: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  ),
 };
 
 const navItems: NavItem[] = [
-  { id: 'overview', label: 'Oversikt', icon: Icons.home },
-  { id: 'orders', label: 'Ordrer', icon: Icons.fileText },
-  { id: 'territory', label: 'Territorium', icon: Icons.globe },
-  { id: 'network', label: 'Nettverk', icon: Icons.network },
-  { id: 'products', label: 'Produkter', icon: Icons.shoppingCart },
-  { id: 'logistics', label: 'Logistikk', icon: Icons.truck },
-  { id: 'team', label: 'Team', icon: Icons.users },
+  { id: 'search', label: 'Søk', icon: Icons.search },
+  { id: 'franchise', label: 'Franchise', icon: Icons.franchise },
 ];
 
-const bottomItems: NavItem[] = [
-  { id: 'help', label: 'Hjelp', icon: Icons.help },
-  { id: 'settings', label: 'Innstillinger', icon: Icons.settings },
+// Disabled menu items - not yet implemented
+const disabledNavItems: NavItem[] = [
+  { id: 'territory', label: 'Territorium', icon: Icons.globe, disabled: true },
+  { id: 'network', label: 'Nettverk', icon: Icons.network, disabled: true },
+  { id: 'team', label: 'Team', icon: Icons.users, disabled: true },
 ];
 
-export function Sidebar({ activeItem, onNavigate }: SidebarProps) {
+const bottomItems = (onOpenSettings?: () => void): NavItem[] => [
+  { id: 'help', label: 'Hjelp', icon: Icons.help, disabled: true },
+  { 
+    id: 'settings', 
+    label: 'Innstillinger', 
+    icon: Icons.settings, 
+    disabled: false,
+    onClick: onOpenSettings,
+  },
+];
+
+export function Sidebar({ activeItem, onNavigate, onOpenSettings }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+
+  const renderNavItem = (item: NavItem, isDisabled: boolean = false) => {
+    const isActive = activeItem === item.id && !isDisabled;
+    
+    if (isDisabled) {
+      return (
+        <li key={item.id}>
+          <button
+            disabled
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium cursor-not-allowed opacity-50"
+            style={{ color: 'var(--gs-text-muted)' }}
+            title="Kommer snart"
+          >
+            <span className="shrink-0" style={{ color: 'var(--gs-text-muted)' }}>
+              {item.icon}
+            </span>
+            {!collapsed && (
+              <span className="truncate">{item.label}</span>
+            )}
+            {!collapsed && (
+              <span
+                className="ml-auto"
+                style={{ color: 'var(--gs-text-muted)' }}
+              >
+                {Icons.lock}
+              </span>
+            )}
+          </button>
+        </li>
+      );
+    }
+
+    // Special case for settings with custom onClick
+    if (item.onClick) {
+      return (
+        <li key={item.id}>
+          <button
+            onClick={item.onClick}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-gray-400 hover:text-gray-200 hover:bg-white/5"
+            style={{ color: 'var(--gs-text-secondary)' }}
+          >
+            <span className="shrink-0" style={{ color: 'var(--gs-text-secondary)' }}>
+              {item.icon}
+            </span>
+            {!collapsed && (
+              <span style={{ color: 'var(--gs-text-secondary)' }}>
+                {item.label}
+              </span>
+            )}
+          </button>
+        </li>
+      );
+    }
+
+    return (
+      <li key={item.id}>
+        <button
+          onClick={() => onNavigate(item.id)}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+            isActive
+              ? 'text-white'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+          }`}
+          style={{
+            backgroundColor: isActive
+              ? 'rgba(163, 230, 53, 0.15)'
+              : 'transparent',
+            borderLeft: isActive
+              ? '2px solid var(--gs-accent-lime)'
+              : '2px solid transparent',
+            marginLeft: isActive ? '-2px' : '0',
+          }}
+        >
+          <span
+            className="shrink-0"
+            style={{
+              color: isActive
+                ? 'var(--gs-accent-lime)'
+                : 'var(--gs-text-secondary)',
+            }}
+          >
+            {item.icon}
+          </span>
+          {!collapsed && (
+            <span
+              className="truncate"
+              style={{
+                color: isActive
+                  ? 'var(--gs-text-primary)'
+                  : 'var(--gs-text-secondary)',
+              }}
+            >
+              {item.label}
+            </span>
+          )}
+          {!collapsed && item.badge && (
+            <span
+              className="ml-auto px-2 py-0.5 text-xs rounded-full"
+              style={{
+                background: 'var(--gs-accent-lime)',
+                color: 'var(--gs-bg-primary)',
+              }}
+            >
+              {item.badge}
+            </span>
+          )}
+        </button>
+      </li>
+    );
+  };
 
   return (
     <aside
@@ -144,64 +257,29 @@ export function Sidebar({ activeItem, onNavigate }: SidebarProps) {
       {/* Main Navigation */}
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = activeItem === item.id;
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => onNavigate(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'text-white'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-                  }`}
-                  style={{
-                    backgroundColor: isActive
-                      ? 'rgba(163, 230, 53, 0.15)'
-                      : 'transparent',
-                    borderLeft: isActive
-                      ? '2px solid var(--gs-accent-lime)'
-                      : '2px solid transparent',
-                    marginLeft: isActive ? '-2px' : '0',
-                  }}
-                >
-                  <span
-                    className="shrink-0"
-                    style={{
-                      color: isActive
-                        ? 'var(--gs-accent-lime)'
-                        : 'var(--gs-text-secondary)',
-                    }}
-                  >
-                    {item.icon}
-                  </span>
-                  {!collapsed && (
-                    <span
-                      className="truncate"
-                      style={{
-                        color: isActive
-                          ? 'var(--gs-text-primary)'
-                          : 'var(--gs-text-secondary)',
-                      }}
-                    >
-                      {item.label}
-                    </span>
-                  )}
-                  {!collapsed && item.badge && (
-                    <span
-                      className="ml-auto px-2 py-0.5 text-xs rounded-full"
-                      style={{
-                        background: 'var(--gs-accent-lime)',
-                        color: 'var(--gs-bg-primary)',
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              </li>
-            );
-          })}
+          {/* Active menu items */}
+          {navItems.map((item) => renderNavItem(item, false))}
+          
+          {/* Divider before disabled items */}
+          {!collapsed && disabledNavItems.length > 0 && (
+            <li className="py-2">
+              <div
+                className="h-px mx-3"
+                style={{ background: 'var(--gs-border-default)' }}
+              />
+            </li>
+          )}
+          {collapsed && disabledNavItems.length > 0 && (
+            <li className="py-2 flex justify-center">
+              <div
+                className="w-4 h-px"
+                style={{ background: 'var(--gs-border-default)' }}
+              />
+            </li>
+          )}
+          
+          {/* Disabled menu items */}
+          {disabledNavItems.map((item) => renderNavItem(item, true))}
         </ul>
       </nav>
 
@@ -211,23 +289,7 @@ export function Sidebar({ activeItem, onNavigate }: SidebarProps) {
         style={{ borderTop: '1px solid var(--gs-border-default)' }}
       >
         <ul className="space-y-1">
-          {bottomItems.map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => onNavigate(item.id)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-all duration-200"
-              >
-                <span className="shrink-0" style={{ color: 'var(--gs-text-tertiary)' }}>
-                  {item.icon}
-                </span>
-                {!collapsed && (
-                  <span style={{ color: 'var(--gs-text-secondary)' }}>
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
+          {bottomItems(onOpenSettings).map((item) => renderNavItem(item, item.disabled))}
         </ul>
 
         {/* Collapse Toggle */}

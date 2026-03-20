@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { signOut } from 'firebase/auth';
+import { useAuth } from '@/app/hooks/useAuth';
+import { auth } from '@/app/lib/firebaseClient';
 
 interface HeaderProps {
-  userName?: string;
-  userRole?: string;
-  userAvatar?: string;
   onSearch?: (query: string) => void;
 }
 
@@ -28,26 +28,22 @@ const Icons = {
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
     </svg>
   ),
-  calendar: (
+  logOut: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" x2="16" y1="2" y2="6"/>
-      <line x1="8" x2="8" y1="2" y2="6"/>
-      <line x1="3" x2="21" y1="10" y2="10"/>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" x2="9" y1="12" y2="12"/>
     </svg>
   ),
-  share: (
+  user: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-      <polyline points="16 6 12 2 8 6"/>
-      <line x1="12" x2="12" y1="2" y2="15"/>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
     </svg>
   ),
-  download: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="7 10 12 15 17 10"/>
-      <line x1="12" x2="12" y1="15" y2="3"/>
+  loader: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
     </svg>
   ),
   chevronDown: (
@@ -55,34 +51,69 @@ const Icons = {
       <path d="m6 9 6 6 6-6"/>
     </svg>
   ),
-  sun: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="4"/>
-      <path d="M12 2v2"/>
-      <path d="M12 20v2"/>
-      <path d="m4.93 4.93 1.41 1.41"/>
-      <path d="m17.66 17.66 1.41 1.41"/>
-      <path d="M2 12h2"/>
-      <path d="M20 12h2"/>
-      <path d="m6.34 17.66-1.41 1.41"/>
-      <path d="m19.07 4.93-1.41 1.41"/>
-    </svg>
-  ),
 };
 
-export function Header({
-  userName = 'Alex Fox',
-  userRole = 'CEO, admin',
-  userAvatar,
-  onSearch,
-}: HeaderProps) {
+// Helper to get initials from name or email
+function getInitials(name: string): string {
+  if (!name) return '?';
+  if (name.includes('@')) {
+    return name.split('@')[0].slice(0, 2).toUpperCase();
+  }
+  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// Helper to get display name from user
+function getDisplayName(user: any): { name: string; role: string } {
+  if (!user) {
+    return { name: 'Ikke innlogget', role: 'Logg inn for å fortsette' };
+  }
+
+  if (user.displayName) {
+    return { name: user.displayName, role: 'Bruker' };
+  }
+
+  if (user.email) {
+    return { name: user.email, role: 'Bruker' };
+  }
+
+  return { name: 'Bruker', role: 'Logget inn' };
+}
+
+export function Header({ onSearch }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications] = useState(3);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, loading } = useAuth();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch?.(searchQuery);
   };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setDropdownOpen(false);
+    } catch (err) {
+      console.error('Sign out error:', err);
+    }
+  };
+
+  const { name: userName, role: userRole } = getDisplayName(user);
+  const initials = getInitials(userName);
+  const photoURL = user?.photoURL;
 
   return (
     <header
@@ -175,31 +206,99 @@ export function Header({
             </button>
           </div>
 
-          {/* User Profile */}
-          <div className="flex items-center gap-3 pl-1">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{
-                background: 'linear-gradient(135deg, var(--gs-accent-lime) 0%, var(--gs-accent-lime-dark) 100%)',
-                color: 'var(--gs-bg-primary)',
-              }}
-            >
-              {userName.split(' ').map(n => n[0]).join('')}
-            </div>
-            <div className="hidden md:block">
-              <p
-                className="text-sm font-medium"
-                style={{ color: 'var(--gs-text-primary)' }}
+          {/* User Profile Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            {loading ? (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--gs-bg-tertiary)' }}
               >
-                {userName}
-              </p>
-              <p
-                className="text-xs"
-                style={{ color: 'var(--gs-text-tertiary)' }}
+                <span style={{ color: 'var(--gs-text-tertiary)' }}>{Icons.loader}</span>
+              </div>
+            ) : (
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg transition-all duration-200 hover:bg-white/5"
               >
-                {userRole}
-              </p>
-            </div>
+                {photoURL ? (
+                  <img
+                    src={photoURL}
+                    alt={userName}
+                    className="w-9 h-9 rounded-full object-cover"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+                    style={{
+                      background: 'linear-gradient(135deg, var(--gs-accent-lime) 0%, var(--gs-accent-lime-dark) 100%)',
+                      color: 'var(--gs-bg-primary)',
+                    }}
+                  >
+                    {initials}
+                  </div>
+                )}
+                <div className="hidden md:block text-left">
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--gs-text-primary)' }}
+                  >
+                    {userName}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: 'var(--gs-text-tertiary)' }}
+                  >
+                    {userRole}
+                  </p>
+                </div>
+                <span 
+                  className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+                  style={{ color: 'var(--gs-text-tertiary)' }}
+                >
+                  {Icons.chevronDown}
+                </span>
+              </button>
+            )}
+
+            {/* Dropdown Menu */}
+            {dropdownOpen && user && (
+              <div
+                className="absolute right-0 top-full mt-2 w-56 rounded-xl overflow-hidden shadow-lg"
+                style={{
+                  background: 'var(--gs-bg-elevated)',
+                  border: '1px solid var(--gs-border-default)',
+                }}
+              >
+                {/* User Info Header */}
+                <div 
+                  className="px-4 py-3"
+                  style={{ borderBottom: '1px solid var(--gs-border-default)' }}
+                >
+                  <p className="text-sm font-medium" style={{ color: 'var(--gs-text-primary)' }}>
+                    {userName}
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--gs-text-tertiary)' }}>
+                    {user.email}
+                  </p>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-1">
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors duration-200 hover:bg-white/5"
+                    style={{ color: 'var(--gs-text-secondary)' }}
+                  >
+                    <span style={{ color: 'var(--gs-accent-red)' }}>{Icons.logOut}</span>
+                    <span>Logg ut</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -248,7 +347,6 @@ export function PageHeader({ title, subtitle, date, onShare, onExport }: PageHea
               color: 'var(--gs-text-secondary)',
             }}
           >
-            {Icons.calendar}
             {date}
           </button>
         )}
@@ -262,7 +360,6 @@ export function PageHeader({ title, subtitle, date, onShare, onExport }: PageHea
               color: 'var(--gs-text-secondary)',
             }}
           >
-            {Icons.share}
             Del rapport
           </button>
         )}
@@ -276,7 +373,6 @@ export function PageHeader({ title, subtitle, date, onShare, onExport }: PageHea
               color: 'var(--gs-text-secondary)',
             }}
           >
-            {Icons.download}
             Eksporter
           </button>
         )}
