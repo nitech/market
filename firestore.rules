@@ -1,14 +1,51 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
     // Favorites lagres på users/{uid}
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
 
     // Franchiser/innstillinger lagres på userSettings/{uid}
     match /userSettings/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
+    }
+
+    // Utviklingskort for kanban
+    match /developmentCards/{cardId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.createdById == request.auth.uid
+        && request.resource.data.lane in ['wishes', 'inProgress', 'done']
+        && request.resource.data.title is string
+        && request.resource.data.content is string
+        && request.resource.data.caption is string
+        && request.resource.data.assignedToName is string
+        && request.resource.data.createdByName is string
+        && request.resource.data.createdAtMs is number;
+
+      allow update: if isSignedIn()
+        && resource.data.createdById == request.auth.uid
+        // Eierskap og lane må forbli uendret i oppdatering
+        && request.resource.data.createdById == resource.data.createdById
+        && request.resource.data.lane == resource.data.lane
+        && request.resource.data.createdAtMs == resource.data.createdAtMs
+        && request.resource.data.title is string
+        && request.resource.data.content is string
+        && request.resource.data.caption is string
+        && request.resource.data.assignedToName is string
+        && request.resource.data.createdByName is string;
+
+      allow delete: if false;
     }
   }
 }

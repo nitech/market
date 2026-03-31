@@ -35,6 +35,13 @@ const Icons = {
       <path d="M9 21v-9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v9"/>
     </svg>
   ),
+  development: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-7.6 7.6-3.6.9.9-3.6 7.3-7.9Z"/>
+      <path d="M16 8 8 16"/>
+      <path d="M20 21H4"/>
+    </svg>
+  ),
   globe: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10"/>
@@ -101,6 +108,7 @@ const Icons = {
 const navItems: NavItem[] = [
   { id: 'search', label: 'Søk', icon: Icons.search },
   { id: 'franchise', label: 'Franchise', icon: Icons.franchise },
+  { id: 'development', label: 'Utvikling', icon: Icons.development },
 ];
 
 // Disabled menu items - not yet implemented

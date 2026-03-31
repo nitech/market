@@ -11,6 +11,7 @@ import { Statistics } from '@/app/components/Statistics';
 import { ExportButton } from '@/app/components/ExportButton';
 import { StatCard } from '@/app/components/StatCard';
 import { FranchiseEierskifteTool } from '@/app/components/FranchiseEierskifteTool';
+import { DevelopmentBoard } from '@/app/components/DevelopmentBoard';
 import { SettingsModal } from '@/app/components/SettingsModal';
 import { useCompanies } from '@/app/hooks/useCompanies';
 import { useFavorites } from '@/app/hooks/useFavorites';
@@ -118,6 +119,8 @@ export default function Home() {
 
   // Get account label for settings modal
   const accountLabel = user?.email || user?.displayName || 'Ukjent bruker';
+  const developmentUserId = user?.uid || 'anonymous';
+  const developmentUserName = user?.displayName || user?.email || 'Ukjent bruker';
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--gs-bg-primary)' }}>
@@ -298,6 +301,17 @@ export default function Home() {
                 subtitle="Analyser eierskifter i franchisekjeder"
               />
               <FranchiseEierskifteTool />
+            </>
+          )}
+
+          {/* Utvikling View */}
+          {activeNavItem === 'development' && (
+            <>
+              <PageHeader
+                title="Utvikling"
+                subtitle="Kanbanboard for brukerinnspill og forbedringer"
+              />
+              <DevelopmentBoard key={developmentUserId} userId={developmentUserId} userName={developmentUserName} />
             </>
           )}
 

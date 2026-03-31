@@ -141,6 +141,7 @@ export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
     switch (activeNavItem) {
       case 'search': return 'Bedriftssøk';
       case 'franchise': return 'Franchise';
+      case 'development': return 'Utvikling';
       case 'territory': return 'Territorium';
       case 'network': return 'Nettverk';
       case 'team': return 'Team';
@@ -193,6 +194,12 @@ export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
               style={{ color: activeNavItem === 'franchise' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
             >
               Franchise
+            </button>
+            <button
+              className="font-medium transition-colors hover:text-white"
+              style={{ color: activeNavItem === 'development' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
+            >
+              Utvikling
             </button>
           </nav>
 
