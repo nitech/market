@@ -86,6 +86,7 @@ export function normalizeFlowData(raw: unknown): CustomerFlowData {
 }
 
 interface StageNodeData {
+  [key: string]: unknown;
   label: string;
   isFirst: boolean;
   isLast: boolean;
