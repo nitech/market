@@ -18,6 +18,8 @@ interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
   isMobile?: boolean;
+  showFranchise?: boolean;
+  showAdmin?: boolean;
 }
 
 // SVG Icons matching GeoSales style
@@ -40,6 +42,21 @@ const Icons = {
       <path d="M14.7 6.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-7.6 7.6-3.6.9.9-3.6 7.3-7.9Z"/>
       <path d="M16 8 8 16"/>
       <path d="M20 21H4"/>
+    </svg>
+  ),
+  flow: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="7" height="5" rx="1"/>
+      <rect x="14" y="10" width="7" height="5" rx="1"/>
+      <rect x="3" y="16" width="7" height="5" rx="1"/>
+      <path d="M10 6.5h3a2 2 0 0 1 2 2V10"/>
+      <path d="M10 18.5h3a2 2 0 0 0 2-2v-1.5"/>
+    </svg>
+  ),
+  admin: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z"/>
+      <path d="M9.5 12.5l2 2 3-4"/>
     </svg>
   ),
   globe: (
@@ -107,8 +124,10 @@ const Icons = {
 
 const navItems: NavItem[] = [
   { id: 'search', label: 'Søk', icon: Icons.search },
+  { id: 'flow', label: 'Flyt', icon: Icons.flow },
   { id: 'franchise', label: 'Franchise', icon: Icons.franchise },
   { id: 'development', label: 'Utvikling', icon: Icons.development },
+  { id: 'admin', label: 'Admin', icon: Icons.admin },
 ];
 
 // Disabled menu items - not yet implemented
@@ -129,8 +148,22 @@ const bottomItems = (onOpenSettings?: () => void): NavItem[] => [
   },
 ];
 
-export function Sidebar({ activeItem, onNavigate, onOpenSettings, isOpen = false, onClose, isMobile = false }: SidebarProps) {
+export function Sidebar({
+  activeItem,
+  onNavigate,
+  onOpenSettings,
+  isOpen = false,
+  onClose,
+  isMobile = false,
+  showFranchise = true,
+  showAdmin = false,
+}: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.id === 'franchise' && !showFranchise) return false;
+    if (item.id === 'admin' && !showAdmin) return false;
+    return true;
+  });
 
   const handleNavigate = (id: string) => {
     onNavigate(id);
@@ -313,7 +346,7 @@ export function Sidebar({ activeItem, onNavigate, onOpenSettings, isOpen = false
           <nav className="flex-1 py-4 px-3 overflow-y-auto" style={{ height: 'calc(100vh - 120px)' }}>
             <ul className="space-y-1">
               {/* Active menu items */}
-              {navItems.map((item) => renderNavItem(item, false))}
+              {visibleNavItems.map((item) => renderNavItem(item, false))}
               
               {/* Divider before disabled items */}
               <li className="py-2">
@@ -379,7 +412,7 @@ export function Sidebar({ activeItem, onNavigate, onOpenSettings, isOpen = false
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         <ul className="space-y-1">
           {/* Active menu items */}
-          {navItems.map((item) => renderNavItem(item, false))}
+          {visibleNavItems.map((item) => renderNavItem(item, false))}
           
           {/* Divider before disabled items */}
           {!collapsed && disabledNavItems.length > 0 && (

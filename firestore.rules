@@ -9,6 +9,34 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isPlatformAdmin() {
+      return isSignedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email.matches(
+          '(?i)^(nitech@gmail\\.com|johannes_falk_davidsen@hotmail\\.com)$'
+        );
+    }
+
+    function tenantMemberDocId(tenantId) {
+      return tenantId + "_" + request.auth.uid;
+    }
+
+    function isTenantMember(tenantId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/tenantMembers/$(tenantMemberDocId(tenantId)));
+    }
+
+    function isTenantOwner(tenantId) {
+      return (
+          isTenantMember(tenantId)
+          && get(/databases/$(database)/documents/tenantMembers/$(tenantMemberDocId(tenantId))).data.role == 'owner'
+        )
+        || (
+          isSignedIn()
+          && get(/databases/$(database)/documents/tenants/$(tenantId)).data.ownerUserId == request.auth.uid
+        );
+    }
+
     // Favorites lagres på users/{uid}
     match /users/{userId} {
       allow read, write: if isOwner(userId);
@@ -17,6 +45,58 @@ service cloud.firestore {
     // Franchiser/innstillinger lagres på userSettings/{uid}
     match /userSettings/{userId} {
       allow read, write: if isOwner(userId);
+    }
+
+    // Tenants/bedrifter
+    match /tenants/{tenantId} {
+      allow read: if isTenantMember(tenantId)
+        || (isSignedIn() && resource.data.ownerUserId == request.auth.uid)
+        || isPlatformAdmin();
+
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUserId == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.features.franchiseSearchEnabled is bool;
+
+      allow update, delete: if isTenantOwner(tenantId) || isPlatformAdmin();
+    }
+
+    // Medlemskap i tenant
+    match /tenantMembers/{memberId} {
+      allow read: if isSignedIn()
+        && (
+          resource.data.userId == request.auth.uid
+          || isTenantOwner(resource.data.tenantId)
+          || isPlatformAdmin()
+        );
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId is string
+        && request.resource.data.tenantId is string
+        && request.resource.data.role in ['owner', 'admin', 'member']
+        && (
+          // Bruker kan opprette eget owner-medlemskap ved førstegangs-oppsett
+          (request.resource.data.userId == request.auth.uid && request.resource.data.role == 'owner')
+          // Eier kan invitere/legge til andre roller
+          || isTenantOwner(request.resource.data.tenantId)
+        );
+
+      allow update, delete: if isTenantOwner(resource.data.tenantId) || isPlatformAdmin();
+    }
+
+    // Invitasjoner til tenant
+    match /tenantInvitations/{invitationId} {
+      allow read: if isSignedIn() && (isTenantMember(resource.data.tenantId) || isPlatformAdmin());
+
+      allow create: if isSignedIn()
+        && request.resource.data.tenantId is string
+        && request.resource.data.email is string
+        && request.resource.data.emailLower is string
+        && request.resource.data.role in ['admin', 'member']
+        && request.resource.data.status == 'pending'
+        && isTenantOwner(request.resource.data.tenantId);
+
+      allow update, delete: if isTenantOwner(resource.data.tenantId) || isPlatformAdmin();
     }
 
     // Utviklingskort for kanban

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '@/app/components/Sidebar';
 import { Header, PageHeader } from '@/app/components/Header';
 import { SearchFiltersComponent } from '@/app/components/SearchFilters';
@@ -12,11 +12,20 @@ import { ExportButton } from '@/app/components/ExportButton';
 import { StatCard } from '@/app/components/StatCard';
 import { FranchiseEierskifteTool } from '@/app/components/FranchiseEierskifteTool';
 import { DevelopmentBoard } from '@/app/components/DevelopmentBoard';
+import { AdminTenantsPanel } from '@/app/components/AdminTenantsPanel';
+import {
+  SalesFlowBoard,
+  createDefaultFlowData,
+  normalizeFlowData,
+  type CustomerFlowData,
+  type FlowCompany,
+} from '@/app/components/SalesFlowBoard';
 import { SettingsModal } from '@/app/components/SettingsModal';
 import { useCompanies } from '@/app/hooks/useCompanies';
 import { useFavorites } from '@/app/hooks/useFavorites';
 import { useAuth } from '@/app/hooks/useAuth';
-import type { SearchFilters } from '@/server/types';
+import { useTenantWorkspace } from '@/app/hooks/useTenantWorkspace';
+import type { CompanyWithRoles, SearchFilters } from '@/server/types';
 
 // Icons for stat cards
 const Icons = {
@@ -81,6 +90,7 @@ export default function Home() {
   const [activeNavItem, setActiveNavItem] = useState('search');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [customerFlow, setCustomerFlow] = useState<CustomerFlowData>(createDefaultFlowData);
 
   const {
     companies,
@@ -96,8 +106,10 @@ export default function Home() {
   } = useCompanies();
 
   const { favorites, toggleFavorite } = useFavorites();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const { tenant } = useTenantWorkspace();
   const [selectedOrgnr, setSelectedOrgnr] = useState<string | null>(null);
+  const flowStorageKey = user?.uid ? `sevenfold-customer-flow:${user.uid}` : null;
 
   const handleSearch = (filters: SearchFilters) => {
     search(filters);
@@ -111,6 +123,73 @@ export default function Home() {
     setSelectedOrgnr(null);
   };
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      if (!flowStorageKey) {
+        setCustomerFlow(createDefaultFlowData());
+        return;
+      }
+
+      try {
+        const raw = localStorage.getItem(flowStorageKey);
+        if (!raw) {
+          setCustomerFlow(createDefaultFlowData());
+          return;
+        }
+        setCustomerFlow(normalizeFlowData(JSON.parse(raw)));
+      } catch {
+        setCustomerFlow(createDefaultFlowData());
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [flowStorageKey]);
+
+  useEffect(() => {
+    if (!flowStorageKey) {
+      return;
+    }
+    localStorage.setItem(flowStorageKey, JSON.stringify(customerFlow));
+  }, [customerFlow, flowStorageKey]);
+
+  const qualifyStageId = customerFlow.stages[0]?.id;
+  const qualifyOrgnrs = useMemo(() => {
+    if (!qualifyStageId) {
+      return new Set<string>();
+    }
+    return new Set((customerFlow.companiesByStage[qualifyStageId] ?? []).map((company) => company.orgnr));
+  }, [customerFlow, qualifyStageId]);
+
+  const handleAddToQualify = (company: CompanyWithRoles) => {
+    setCustomerFlow((prev) => {
+      const firstStageId = prev.stages[0]?.id;
+      if (!firstStageId) {
+        return prev;
+      }
+
+      // Prevent duplicates across all stages.
+      for (const stage of prev.stages) {
+        if ((prev.companiesByStage[stage.id] ?? []).some((item) => item.orgnr === company.organisasjonsnummer)) {
+          return prev;
+        }
+      }
+
+      const flowCompany: FlowCompany = {
+        orgnr: company.organisasjonsnummer,
+        name: company.navn || 'Ukjent bedrift',
+        addedAt: new Date().toISOString(),
+      };
+
+      return {
+        ...prev,
+        companiesByStage: {
+          ...prev.companiesByStage,
+          [firstStageId]: [flowCompany, ...(prev.companiesByStage[firstStageId] ?? [])],
+        },
+      };
+    });
+  };
+
   // Calculate stats
   const totalCompanies = companies.length;
   const totalCapital = companies.reduce((sum, c) => sum + (c.kapital?.belop || 0), 0);
@@ -121,6 +200,19 @@ export default function Home() {
   const accountLabel = user?.email || user?.displayName || 'Ukjent bruker';
   const developmentUserId = user?.uid || 'anonymous';
   const developmentUserName = user?.displayName || user?.email || 'Ukjent bruker';
+  const franchiseEnabledForTenant = Boolean(tenant?.features.franchiseSearchEnabled);
+
+  useEffect(() => {
+    if (!franchiseEnabledForTenant && activeNavItem === 'franchise') {
+      setActiveNavItem('search');
+    }
+    if (!isAdmin && activeNavItem === 'admin') {
+      setActiveNavItem('search');
+    }
+    if (activeNavItem === 'company') {
+      setActiveNavItem('search');
+    }
+  }, [activeNavItem, franchiseEnabledForTenant, isAdmin]);
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--gs-bg-primary)' }}>
@@ -135,6 +227,8 @@ export default function Home() {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         isMobile={true}
+        showFranchise={franchiseEnabledForTenant}
+        showAdmin={isAdmin}
       />
 
       {/* Desktop Sidebar - Separate instance for desktop */}
@@ -146,6 +240,8 @@ export default function Home() {
             setSelectedOrgnr(null);
           }}
           onOpenSettings={() => setSettingsOpen(true)}
+          showFranchise={franchiseEnabledForTenant}
+          showAdmin={isAdmin}
         />
       </div>
 
@@ -156,6 +252,8 @@ export default function Home() {
           onSearch={(query) => console.log('Search:', query)} 
           onMenuClick={() => setMobileMenuOpen(true)}
           activeNavItem={activeNavItem}
+          showFranchise={franchiseEnabledForTenant}
+          showAdmin={isAdmin}
         />
 
         {/* Page Content */}
@@ -269,6 +367,8 @@ export default function Home() {
                 onViewDetails={handleViewDetails}
                 favorites={favorites}
                 onToggleFavorite={toggleFavorite}
+                onAddToQualify={handleAddToQualify}
+                qualifyOrgnrs={qualifyOrgnrs}
               />
 
               {/* Pagination */}
@@ -293,6 +393,17 @@ export default function Home() {
             </>
           )}
 
+          {/* Flyt View */}
+          {activeNavItem === 'flow' && (
+            <>
+              <PageHeader
+                title="Kundeflyt"
+                subtitle="Bygg og rediger egen flyt basert på standarden Kvalifiser → Berik → Salg"
+              />
+              <SalesFlowBoard flow={customerFlow} onFlowChange={setCustomerFlow} />
+            </>
+          )}
+
           {/* Franchise View */}
           {activeNavItem === 'franchise' && (
             <>
@@ -300,7 +411,21 @@ export default function Home() {
                 title="Franchise Eierskifte"
                 subtitle="Analyser eierskifter i franchisekjeder"
               />
-              <FranchiseEierskifteTool />
+              {franchiseEnabledForTenant ? (
+                <FranchiseEierskifteTool />
+              ) : (
+                <div
+                  className="rounded-xl p-6"
+                  style={{
+                    background: 'var(--gs-bg-card)',
+                    border: '1px solid var(--gs-border-default)',
+                  }}
+                >
+                  <p className="text-sm" style={{ color: 'var(--gs-text-secondary)' }}>
+                    Franchise-søk er ikke aktivert for bedriften din ennå. Kontakt administrator.
+                  </p>
+                </div>
+              )}
             </>
           )}
 
@@ -312,6 +437,17 @@ export default function Home() {
                 subtitle="Kanbanboard for brukerinnspill og forbedringer"
               />
               <DevelopmentBoard key={developmentUserId} userId={developmentUserId} userName={developmentUserName} />
+            </>
+          )}
+
+          {/* Other menu items - Placeholder */}
+          {activeNavItem === 'admin' && (
+            <>
+              <PageHeader
+                title="Administrasjon"
+                subtitle="Administrer kunder, brukere og funksjonalitet per bedrift"
+              />
+              <AdminTenantsPanel />
             </>
           )}
 

@@ -9,6 +9,8 @@ interface CompanyListProps {
   onViewDetails?: (orgnr: string) => void;
   favorites?: string[];
   onToggleFavorite?: (orgnr: string) => void;
+  onAddToQualify?: (company: CompanyWithRoles) => void;
+  qualifyOrgnrs?: Set<string>;
 }
 
 // Custom Checkbox Component matching GeoSales style
@@ -111,6 +113,12 @@ const Icons = {
       <path d="m9 18 6-6-6-6"/>
     </svg>
   ),
+  plus: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  ),
 };
 
 // Status Badge Component
@@ -170,7 +178,15 @@ function StatusBadge({
   );
 }
 
-export function CompanyList({ companies, loading, onViewDetails, favorites, onToggleFavorite }: CompanyListProps) {
+export function CompanyList({
+  companies,
+  loading,
+  onViewDetails,
+  favorites,
+  onToggleFavorite,
+  onAddToQualify,
+  qualifyOrgnrs,
+}: CompanyListProps) {
   const [copiedOrgnr, setCopiedOrgnr] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState('all');
@@ -428,6 +444,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
           {filteredCompanies.map((company) => {
             const isSelected = selectedRows.has(company.organisasjonsnummer);
             const isFavorite = favorites?.includes(company.organisasjonsnummer);
+            const isInQualify = qualifyOrgnrs?.has(company.organisasjonsnummer) ?? false;
 
             return (
               <div
@@ -498,15 +515,33 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                         </span>
                       )}
                     </div>
-                    {onViewDetails && (
-                      <button
-                        onClick={() => onViewDetails(company.organisasjonsnummer)}
-                        className="p-2 rounded-lg transition-all duration-150"
-                        style={{ color: 'var(--gs-text-tertiary)' }}
-                      >
-                        {Icons.chevronRight}
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {onAddToQualify && (
+                        <button
+                          onClick={() => onAddToQualify(company)}
+                          disabled={isInQualify}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium"
+                          style={{
+                            background: isInQualify ? 'rgba(34, 197, 94, 0.15)' : 'rgba(163, 230, 53, 0.15)',
+                            color: isInQualify ? 'var(--gs-accent-green)' : 'var(--gs-accent-lime)',
+                            opacity: isInQualify ? 0.8 : 1,
+                          }}
+                          title={isInQualify ? 'Allerede i kvalifiser' : 'Legg til i kvalifiser'}
+                        >
+                          {Icons.plus}
+                          {isInQualify ? 'Lagt til' : 'Kvalifiser'}
+                        </button>
+                      )}
+                      {onViewDetails && (
+                        <button
+                          onClick={() => onViewDetails(company.organisasjonsnummer)}
+                          className="p-2 rounded-lg transition-all duration-150"
+                          style={{ color: 'var(--gs-text-tertiary)' }}
+                        >
+                          {Icons.chevronRight}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -574,6 +609,7 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
             {filteredCompanies.map((company) => {
               const isSelected = selectedRows.has(company.organisasjonsnummer);
               const isFavorite = favorites?.includes(company.organisasjonsnummer);
+              const isInQualify = qualifyOrgnrs?.has(company.organisasjonsnummer) ?? false;
 
               return (
                 <tr
@@ -699,26 +735,44 @@ export function CompanyList({ companies, loading, onViewDetails, favorites, onTo
                     )}
                   </td>
                   <td className="px-3 sm:px-4 py-3 sm:py-4">
-                    {onViewDetails && (
-                      <button
-                        onClick={() => onViewDetails(company.organisasjonsnummer)}
-                        className="p-1.5 rounded-md transition-all duration-150 hover:scale-110"
-                        style={{
-                          color: 'var(--gs-text-tertiary)',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = 'var(--gs-accent-lime)';
-                          e.currentTarget.style.background = 'rgba(163, 230, 53, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = 'var(--gs-text-tertiary)';
-                          e.currentTarget.style.background = 'transparent';
-                        }}
-                        title="Se detaljer"
-                      >
-                        {Icons.external}
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-1">
+                      {onAddToQualify && (
+                        <button
+                          onClick={() => onAddToQualify(company)}
+                          disabled={isInQualify}
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium"
+                          style={{
+                            background: isInQualify ? 'rgba(34, 197, 94, 0.15)' : 'rgba(163, 230, 53, 0.15)',
+                            color: isInQualify ? 'var(--gs-accent-green)' : 'var(--gs-accent-lime)',
+                            opacity: isInQualify ? 0.8 : 1,
+                          }}
+                          title={isInQualify ? 'Allerede i kvalifiser' : 'Legg til i kvalifiser'}
+                        >
+                          {Icons.plus}
+                          {isInQualify ? 'Lagt til' : 'Kvalifiser'}
+                        </button>
+                      )}
+                      {onViewDetails && (
+                        <button
+                          onClick={() => onViewDetails(company.organisasjonsnummer)}
+                          className="p-1.5 rounded-md transition-all duration-150 hover:scale-110"
+                          style={{
+                            color: 'var(--gs-text-tertiary)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = 'var(--gs-accent-lime)';
+                            e.currentTarget.style.background = 'rgba(163, 230, 53, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'var(--gs-text-tertiary)';
+                            e.currentTarget.style.background = 'transparent';
+                          }}
+                          title="Se detaljer"
+                        >
+                          {Icons.external}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

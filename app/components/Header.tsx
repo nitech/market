@@ -9,6 +9,8 @@ interface HeaderProps {
   onSearch?: (query: string) => void;
   onMenuClick?: () => void;
   activeNavItem?: string;
+  showFranchise?: boolean;
+  showAdmin?: boolean;
 }
 
 const Icons = {
@@ -78,30 +80,30 @@ function getInitials(name: string): string {
 }
 
 // Helper to get display name from user
-function getDisplayName(user: any): { name: string; role: string } {
+function getDisplayName(user: any): { name: string } {
   if (!user) {
-    return { name: 'Ikke innlogget', role: 'Logg inn for å fortsette' };
+    return { name: 'Ikke innlogget' };
   }
 
   if (user.displayName) {
-    return { name: user.displayName, role: 'Bruker' };
+    return { name: user.displayName };
   }
 
   if (user.email) {
-    return { name: user.email, role: 'Bruker' };
+    return { name: user.email };
   }
 
-  return { name: 'Bruker', role: 'Logget inn' };
+  return { name: 'Bruker' };
 }
 
-export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
+export function Header({ onSearch, onMenuClick, activeNavItem, showFranchise = true, showAdmin = false }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications] = useState(3);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -132,7 +134,8 @@ export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
     }
   };
 
-  const { name: userName, role: userRole } = getDisplayName(user);
+  const { name: userName } = getDisplayName(user);
+  const userRoleLabel = role === 'admin' ? 'Administrator' : 'Bruker';
   const initials = getInitials(userName);
   const photoURL = user?.photoURL;
 
@@ -140,8 +143,10 @@ export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
   const getPageTitle = () => {
     switch (activeNavItem) {
       case 'search': return 'Bedriftssøk';
+      case 'flow': return 'Flyt';
       case 'franchise': return 'Franchise';
       case 'development': return 'Utvikling';
+      case 'admin': return 'Admin';
       case 'territory': return 'Territorium';
       case 'network': return 'Nettverk';
       case 'team': return 'Team';
@@ -191,16 +196,32 @@ export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
             </button>
             <button
               className="font-medium transition-colors hover:text-white"
-              style={{ color: activeNavItem === 'franchise' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
+              style={{ color: activeNavItem === 'flow' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
             >
-              Franchise
+              Flyt
             </button>
+            {showFranchise && (
+              <button
+                className="font-medium transition-colors hover:text-white"
+                style={{ color: activeNavItem === 'franchise' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
+              >
+                Franchise
+              </button>
+            )}
             <button
               className="font-medium transition-colors hover:text-white"
               style={{ color: activeNavItem === 'development' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
             >
               Utvikling
             </button>
+            {showAdmin && (
+              <button
+                className="font-medium transition-colors hover:text-white"
+                style={{ color: activeNavItem === 'admin' ? 'var(--gs-text-primary)' : 'var(--gs-text-tertiary)' }}
+              >
+                Admin
+              </button>
+            )}
           </nav>
 
           {/* Center - Search (Desktop) */}
@@ -324,6 +345,9 @@ export function Header({ onSearch, onMenuClick, activeNavItem }: HeaderProps) {
                     </p>
                     <p className="text-xs" style={{ color: 'var(--gs-text-tertiary)' }}>
                       {user.email}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: role === 'admin' ? 'var(--gs-accent-lime)' : 'var(--gs-text-tertiary)' }}>
+                      Rolle: {userRoleLabel}
                     </p>
                   </div>
                   <div className="py-1">

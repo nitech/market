@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/app/lib/firebaseClient';
+import { getUserRole } from '@/app/lib/userRoles';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -23,6 +24,9 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  return { user, loading, error };
+  const role = getUserRole(user?.email);
+  const isAdmin = role === 'admin';
+
+  return { user, loading, error, role, isAdmin };
 }
 

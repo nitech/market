@@ -17,8 +17,9 @@ import {
   readStoredTheme,
   type ThemePreference,
 } from '@/app/lib/themePreference';
+import { TenantWorkspace } from '@/app/components/TenantWorkspace';
 
-type Section = 'general' | 'franchises' | 'danger';
+type Section = 'general' | 'company' | 'franchises' | 'danger';
 
 async function readUserSettingsDoc(uid: string) {
   const ref = doc(db, USER_SETTINGS_COLLECTION, uid);
@@ -42,6 +43,15 @@ function IconFranchises({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21m6-16.5V9a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 9 9V4.5M3 10.5V19a2.25 2.25 0 0 0 2.25 2.25h13.5A2.25 2.25 0 0 0 21 19v-8.25M3 10.5h18M4.5 4.5h15a1.5 1.5 0 0 1 1.5 1.5v4.5a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5V6a1.5 1.5 0 0 1 1.5-1.5Z" />
+    </svg>
+  );
+}
+
+function IconCompany({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className={className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h6M9 13h6M9 17h4" />
     </svg>
   );
 }
@@ -270,6 +280,12 @@ export function SettingsModal({ open, onClose, user, accountLabel }: SettingsMod
                 label="Generelt"
               />
               <NavButton
+                active={section === 'company'}
+                onClick={() => setSection('company')}
+                icon={<IconCompany className="h-5 w-5" />}
+                label="Bedrift"
+              />
+              <NavButton
                 active={section === 'franchises'}
                 onClick={() => setSection('franchises')}
                 icon={<IconFranchises className="h-5 w-5" />}
@@ -363,6 +379,8 @@ export function SettingsModal({ open, onClose, user, accountLabel }: SettingsMod
                 </button>
               </div>
             )}
+
+            {section === 'company' && <TenantWorkspace />}
 
             {section === 'danger' && (
               <div>

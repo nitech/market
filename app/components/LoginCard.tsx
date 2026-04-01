@@ -9,6 +9,7 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { auth } from '@/app/lib/firebaseClient';
+import { ensureTenantForUser } from '@/app/lib/tenant';
 
 type Mode = 'signin' | 'signup';
 
@@ -31,9 +32,11 @@ export function LoginCard() {
 
     try {
       if (mode === 'signin') {
-        await signInWithEmailAndPassword(auth, email, password);
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        await ensureTenantForUser(result.user);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await ensureTenantForUser(result.user);
       }
 
       // La AuthGate ta over UI når auth-state oppdateres.
@@ -53,7 +56,8 @@ export function LoginCard() {
     try {
       const provider = new GoogleAuthProvider();
       // Oppretter konto automatisk hvis brukeren ikke finnes fra før.
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await ensureTenantForUser(result.user);
       router.replace('/');
     } catch (err) {
       // Vanlig ved blokkering av popups.
